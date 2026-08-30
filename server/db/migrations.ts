@@ -410,4 +410,12 @@ WHERE f."photoId" = p.id
             `ALTER TABLE "site_settings" ADD COLUMN IF NOT EXISTS "queueConcurrency" JSONB`,
         ],
     },
+    {
+        name: '0020_picture_group_shares.sql',
+        statements: [
+            `ALTER TABLE "share_links" ADD COLUMN IF NOT EXISTS "photoIds" UUID[]`,
+            `ALTER TABLE "share_links" ADD COLUMN IF NOT EXISTS "description" TEXT`,
+            `ALTER TABLE "share_links" ADD COLUMN IF NOT EXISTS "privateNotes" TEXT`,
+        ],
+    },
 ]

@@ -316,6 +316,12 @@
                     <span v-else>Download</span>
                 </button>
 
+                <button v-if="album.permissions.isOwner" @click="openPictureGroupModal"
+                    class="flex items-center gap-1.5 text-sm font-medium transition" style="color: var(--text-1);">
+                    <Icon name="lucide:share-2" class="h-4 w-4" :stroke-width="2" />
+                    Share
+                </button>
+
                 <template v-if="canManageSelectedPhotos">
                     <button v-if="selectedPhotoIds.size === 1" @click="openEditPhotoModal"
                         class="flex items-center gap-1.5 text-sm font-medium transition" style="color: var(--text-1);">
@@ -1092,6 +1098,72 @@
         </div>
     </div>
 
+    <!-- Picture Group Share Modal -->
+    <div v-if="showPictureGroupModal"
+        class="fixed inset-0 flex items-center justify-center p-4 z-50"
+        style="background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);"
+        @mousedown="handleBackdropMousedown"
+        @mouseup="handleBackdropMouseup($event, closePictureGroupModal)">
+        <div class="rounded-2xl p-6 max-w-lg w-full"
+            style="background: var(--surface-1); border: 1px solid var(--separator); box-shadow: var(--shadow-xl);">
+            <div class="flex justify-between items-start gap-4 mb-6">
+                <div>
+                    <h3 class="text-xl font-bold" style="color: var(--text-1);">Share selected pictures</h3>
+                    <p class="text-sm mt-1" style="color: var(--text-3);">{{ selectedPhotoIds.size }} pictures from {{ album?.name }}</p>
+                </div>
+                <button @click="closePictureGroupModal" class="transition" style="color: var(--text-3);">
+                    <Icon name="lucide:x" class="h-5 w-5" :stroke-width="2" />
+                </button>
+            </div>
+
+            <div v-if="createdPictureGroupUrl" class="space-y-4">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center"
+                    style="background: var(--success-bg); color: var(--success-text);">
+                    <Icon name="lucide:check" class="h-6 w-6" :stroke-width="2.5" />
+                </div>
+                <div>
+                    <h4 class="font-semibold" style="color: var(--text-1);">Picture group link created</h4>
+                    <p class="text-sm mt-1" style="color: var(--text-3);">Only the selected pictures are shown first. Visitors can choose View All to open the full album.</p>
+                </div>
+                <div class="flex items-center gap-2 rounded-xl p-2" style="background: var(--surface-2); border: 1px solid var(--separator);">
+                    <input :value="createdPictureGroupUrl" readonly class="min-w-0 flex-1 bg-transparent px-2 text-sm outline-none" style="color: var(--text-2);" />
+                    <button @click="copyPictureGroupUrl" class="px-3 py-2 rounded-full text-sm font-medium"
+                        style="background: var(--accent); color: var(--accent-text);">
+                        {{ pictureGroupCopied ? 'Copied!' : 'Copy link' }}
+                    </button>
+                </div>
+                <button @click="closePictureGroupModal" class="w-full px-4 py-2.5 rounded-full text-sm font-medium"
+                    style="background: var(--surface-2); color: var(--text-1); border: 1px solid var(--separator);">Done</button>
+            </div>
+
+            <form v-else @submit.prevent="createPictureGroupShare" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Description</label>
+                    <textarea v-model="pictureGroupForm.description" rows="3" maxlength="2000"
+                        class="w-full px-3.5 py-2.5 text-sm rounded-xl resize-none outline-none"
+                        style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1);"
+                        placeholder="A note the recipient will see with these pictures"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Private notes</label>
+                    <textarea v-model="pictureGroupForm.privateNotes" rows="3" maxlength="4000"
+                        class="w-full px-3.5 py-2.5 text-sm rounded-xl resize-none outline-none"
+                        style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1);"
+                        placeholder="For your reference only"></textarea>
+                    <p class="text-xs mt-1" style="color: var(--text-3);">Private notes are never shown to visitors.</p>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" @click="closePictureGroupModal" class="px-4 py-2.5 rounded-full text-sm font-medium"
+                        style="background: var(--surface-2); color: var(--text-1); border: 1px solid var(--separator);">Cancel</button>
+                    <button type="submit" :disabled="creatingPictureGroup" class="px-5 py-2.5 rounded-full text-sm font-medium disabled:opacity-50"
+                        style="background: var(--accent); color: var(--accent-text);">
+                        {{ creatingPictureGroup ? 'Creating…' : 'Create share link' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Share Modal -->
     <div v-if="showShareModal"
         class="fixed inset-0 flex items-center justify-center p-4 z-50"
@@ -1222,7 +1294,15 @@
                                     style="background: var(--surface-3); color: var(--text-3);">
                                     No Face Search
                                 </span>
+                                <span v-if="link.photoIds?.length" class="text-xs px-2 py-0.5 rounded-full"
+                                    style="background: var(--accent-light); color: var(--accent);">
+                                    {{ link.photoIds.length }} picture subset
+                                </span>
                             </div>
+                            <p v-if="link.description" class="text-sm mb-1" style="color: var(--text-2);">{{ link.description }}</p>
+                            <p v-if="link.privateNotes" class="text-xs mb-2" style="color: var(--text-3);">
+                                Private: {{ link.privateNotes }}
+                            </p>
                             <div class="flex items-center gap-2 text-sm">
                                 <button @click="copyLink(link)"
                                     class="truncate max-w-[200px] transition underline decoration-dotted text-sm"
@@ -1686,6 +1766,9 @@ interface ShareLink {
     faceSearchEnabled?: boolean
     views: number
     createdAt: number
+    photoIds?: string[] | null
+    description?: string | null
+    privateNotes?: string | null
     copied?: boolean
 }
 
@@ -2529,6 +2612,11 @@ useSeoMeta({
 // Share Modal State
 const showShareModal = ref(false)
 const shareLinks = ref<ShareLink[]>([])
+const showPictureGroupModal = ref(false)
+const creatingPictureGroup = ref(false)
+const createdPictureGroupUrl = ref('')
+const pictureGroupCopied = ref(false)
+const pictureGroupForm = ref({ description: '', privateNotes: '' })
 
 // Collaborators Modal State
 const showCollaboratorsModal = ref(false)
@@ -3172,6 +3260,51 @@ const transferPhotos = async () => {
 }
 
 // Share Logic
+
+const openPictureGroupModal = () => {
+    if (selectedPhotoIds.value.size === 0) return
+    pictureGroupForm.value = { description: '', privateNotes: '' }
+    createdPictureGroupUrl.value = ''
+    pictureGroupCopied.value = false
+    showPictureGroupModal.value = true
+}
+
+const closePictureGroupModal = () => {
+    showPictureGroupModal.value = false
+    if (createdPictureGroupUrl.value) clearSelection()
+}
+
+const createPictureGroupShare = async () => {
+    if (creatingPictureGroup.value || selectedPhotoIds.value.size === 0) return
+    creatingPictureGroup.value = true
+    try {
+        const response = await $fetch<{ success: boolean; data: ShareLink }>(`/api/v1/album/${albumId}/share-links`, {
+            method: 'POST',
+            body: {
+                type: 'view',
+                photoIds: Array.from(selectedPhotoIds.value),
+                description: pictureGroupForm.value.description,
+                privateNotes: pictureGroupForm.value.privateNotes,
+                showMetadata: false,
+                faceSearchEnabled: false,
+            },
+        })
+        createdPictureGroupUrl.value = `${window.location.origin}/v/${response.data.token}`
+        await fetchShareLinks()
+        toast('Picture group link created', 'success')
+    } catch (err: any) {
+        toast(err.data?.statusMessage || 'Failed to create picture group', 'error')
+    } finally {
+        creatingPictureGroup.value = false
+    }
+}
+
+const copyPictureGroupUrl = async () => {
+    if (!createdPictureGroupUrl.value) return
+    await navigator.clipboard.writeText(createdPictureGroupUrl.value)
+    pictureGroupCopied.value = true
+    window.setTimeout(() => { pictureGroupCopied.value = false }, 2000)
+}
 
 const openShareModal = async () => {
     showShareModal.value = true

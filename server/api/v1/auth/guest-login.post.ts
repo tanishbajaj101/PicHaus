@@ -141,9 +141,12 @@ export default defineEventHandler(async (event) => {
             return {
                 success: true,
                 data: {
-                    type: 'view',
+                    type: shareLink.photoIds?.length ? 'picture-group' : 'view',
                     albumId: shareLink.albumId,
                     albumName: shareLink.album.title,
+                    description: shareLink.photoIds?.length ? shareLink.description : shareLink.album.description,
+                    albumDescription: shareLink.album.description,
+                    isPictureGroup: !!shareLink.photoIds?.length,
                     showMetadata: shareLink.showMetadata,
                     faceSearchEnabled: shareLink.faceSearchEnabled,
                 },

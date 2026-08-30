@@ -100,19 +100,24 @@ export default defineEventHandler(async (event) => {
             }
         }
 
+        const isPictureGroup = !!shareLink.photoIds?.length
         const countResult = await db.select({ photoCount: sql<number>`COUNT(*)` })
             .from(photos)
-            .where(eq(photos.albumId, shareLink.album.id))
+            .where(isPictureGroup
+                ? and(eq(photos.albumId, shareLink.album.id), inArray(photos.id, shareLink.photoIds!))
+                : eq(photos.albumId, shareLink.album.id))
 
         const photoCount = countResult[0]?.photoCount ?? 0
 
         return {
             success: true,
             data: {
-                type: 'album',
+                type: isPictureGroup ? 'picture-group' : 'album',
                 albumId: shareLink.album.id,
                 albumName: shareLink.album.title,
-                description: shareLink.album.description,
+                description: isPictureGroup ? shareLink.description : shareLink.album.description,
+                albumDescription: shareLink.album.description,
+                isPictureGroup,
                 eventDate: shareLink.album.eventDate ? Number(shareLink.album.eventDate) : null,
                 ownerName: shareLink.album.owner.name,
                 photoCount: Number(photoCount),

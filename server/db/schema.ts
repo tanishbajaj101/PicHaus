@@ -137,6 +137,9 @@ export const shareLinks = pgTable('share_links', {
     showMetadata: boolean('showMetadata').default(false).notNull(),
     faceSearchEnabled: boolean('faceSearchEnabled').default(false).notNull(),
     uploadMessage: text('uploadMessage'),
+    photoIds: uuid('photoIds').array(),
+    description: text('description'),
+    privateNotes: text('privateNotes'),
     albumId: uuid('albumId').references(() => albums.id, { onDelete: 'cascade' }),
     shareGroupId: uuid('shareGroupId').references(() => shareGroups.id, { onDelete: 'cascade' }),
 })

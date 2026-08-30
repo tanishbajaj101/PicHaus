@@ -162,6 +162,25 @@
 
             <!-- Album View -->
             <div v-else>
+                <div v-if="isPictureGroup" class="mb-6 rounded-2xl px-4 py-3 text-sm flex flex-wrap items-center justify-between gap-3"
+                    style="background: var(--surface-1); border: 1px solid var(--separator); color: var(--text-2);">
+                    <span v-if="!showingAllPhotos">
+                        This subset is a part of <strong style="color: var(--text-1);">{{ albumName }}</strong>
+                    </span>
+                    <span v-else>
+                        Viewing all pictures from <strong style="color: var(--text-1);">{{ albumName }}</strong>
+                    </span>
+                    <button v-if="!showingAllPhotos" @click="viewAllAlbumPhotos"
+                        class="px-4 py-2 rounded-full text-sm font-semibold transition"
+                        style="background: var(--accent); color: var(--accent-text);">
+                        View All
+                    </button>
+                    <button v-else @click="viewPictureSubset"
+                        class="px-4 py-2 rounded-full text-sm font-semibold transition"
+                        style="background: var(--surface-2); color: var(--text-1); border: 1px solid var(--separator);">
+                        Back to subset
+                    </button>
+                </div>
                 <!-- Header -->
                 <div
                     class="pt-4 sm:pt-0 mb-6 sm:mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -507,6 +526,8 @@ const token = route.params.token as string
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const isUUID = UUID_REGEX.test(token)
 const isPublicAlbum = ref(false)
+const isPictureGroup = ref(false)
+const showingAllPhotos = ref(false)
 
 // Auth State
 const loading = ref(true)
@@ -816,9 +837,13 @@ const downloadAll = async () => {
     const folderName = (viewMode.value === 'album' ? albumName.value : groupTitle.value) || 'photos'
 
     try {
-        // Fetch all photo URLs
-        const response = await $fetch<{ success: boolean; data: any[] }>(`/api/v1/album/${albumId.value}/download-info`)
-        const photosToDownload = response.data
+        // Fetch only the current scope. Picture-group links must not silently
+        // turn a "download all" action into a full-album download.
+        const photosToDownload = isPictureGroup.value && !showingAllPhotos.value
+            ? (await $fetch<{ success: boolean; data: { photos: any[] } }>(`/api/v1/share-links/${token}/photos`, {
+                params: { page: 1, limit: 1000 },
+            })).data.photos
+            : (await $fetch<{ success: boolean; data: any[] }>(`/api/v1/album/${albumId.value}/download-info`)).data
 
         if (photosToDownload.length === 0) {
             dialog.toast('No photos to download', 'warning')
@@ -1033,9 +1058,14 @@ const downloadFavorites = async () => {
         try {
             let allAlbumPhotos: any[] = []
             if (viewMode.value === 'album' && albumId.value) {
-                const response = await $fetch<{ success: boolean; data: any[] }>(`/api/v1/album/${albumId.value}/download-info`)
-                if (response.success && Array.isArray(response.data)) {
-                    allAlbumPhotos = response.data
+                if (isPictureGroup.value && !showingAllPhotos.value) {
+                    const response = await $fetch<{ success: boolean; data: { photos: any[] } }>(`/api/v1/share-links/${token}/photos`, {
+                        params: { page: 1, limit: 1000 },
+                    })
+                    allAlbumPhotos = response.data.photos
+                } else {
+                    const response = await $fetch<{ success: boolean; data: any[] }>(`/api/v1/album/${albumId.value}/download-info`)
+                    if (response.success && Array.isArray(response.data)) allAlbumPhotos = response.data
                 }
             } else if ((viewMode.value === 'all-group-photos' || viewMode.value === 'group') && groupAlbums.value.length > 0) {
                 for (const album of groupAlbums.value) {
@@ -1203,6 +1233,7 @@ if (linkData.value?.data) {
     } else {
         viewMode.value = 'album'
         shareType.value = data.shareType || 'view' // 'view' or 'upload'
+        isPictureGroup.value = data.type === 'picture-group' || !!data.isPictureGroup
         albumId.value = data.albumId || ''
         albumName.value = data.albumName || ''
         description.value = data.description || ''
@@ -1296,6 +1327,8 @@ const handleAccess = async () => {
             albumId.value = data.albumId
             albumName.value = data.albumName || albumName.value
             ownerName.value = data.ownerName || ownerName.value
+            description.value = data.description || description.value
+            isPictureGroup.value = data.type === 'picture-group' || !!data.isPictureGroup
             isAuthenticated.value = true
             await fetchPhotos()
         }
@@ -1382,13 +1415,33 @@ const fetchAllGroupPhotos = async () => {
     }
 }
 
+const reloadAlbumPhotos = async () => {
+    photos.value = []
+    page.value = 1
+    hasMore.value = false
+    selectedPhotoIndex.value = null
+    await fetchPhotos()
+}
+
+const viewAllAlbumPhotos = async () => {
+    showingAllPhotos.value = true
+    await reloadAlbumPhotos()
+}
+
+const viewPictureSubset = async () => {
+    showingAllPhotos.value = false
+    await reloadAlbumPhotos()
+}
+
 // Fetch photos after access
 const fetchPhotos = async () => {
     try {
         loadingPhotos.value = page.value === 1
         loadingMore.value = page.value > 1
 
-        const photoApiUrl = isPublicAlbum.value
+        const photoApiUrl = isPictureGroup.value && !showingAllPhotos.value
+            ? `/api/v1/share-links/${token}/photos?page=${page.value}&limit=${limit.value}`
+            : isPublicAlbum.value
             ? `/api/pub/album/${albumId.value}/photos?page=${page.value}&limit=${limit.value}&sort=dateTaken&order=asc`
             : `/api/v1/album/${albumId.value}?page=${page.value}&limit=${limit.value}&sort=dateTaken&order=asc`
         const response = await $fetch<{ success: boolean; data: any }>(photoApiUrl)
@@ -1444,7 +1497,9 @@ const loadMorePhotos = async () => {
     loadingMore.value = true
     try {
         const nextPage = page.value + 1
-        const loadMoreUrl = isPublicAlbum.value
+        const loadMoreUrl = isPictureGroup.value && !showingAllPhotos.value
+            ? `/api/v1/share-links/${token}/photos`
+            : isPublicAlbum.value
             ? `/api/pub/album/${albumId.value}/photos`
             : `/api/v1/album/${albumId.value}`
         const response = await $fetch<{ success: boolean; data: any }>(loadMoreUrl, {
