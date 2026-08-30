@@ -78,6 +78,7 @@ export default defineEventHandler(async (event) => {
         }
 
         if (!shareLink.album) throw createError({ statusCode: 404, statusMessage: 'Album not found in this link' })
+        const isPictureGroup = !!shareLink.photoIds?.length
 
         const hasAlbumCookieAccess = !!shareLink.albumId && getCookie(event, `album-access-${shareLink.albumId}`) === token
         const hasUserAdminAccess = authUser?.role === 'ADMIN'
@@ -91,7 +92,8 @@ export default defineEventHandler(async (event) => {
             return {
                 success: true,
                 data: {
-                    type: 'album',
+                    type: isPictureGroup ? 'picture-group' : 'album',
+                    isPictureGroup,
                     requiresPassword: true,
                     shareType: shareLink.type,
                     showMetadata: shareLink.showMetadata,
@@ -100,7 +102,6 @@ export default defineEventHandler(async (event) => {
             }
         }
 
-        const isPictureGroup = !!shareLink.photoIds?.length
         const countResult = await db.select({ photoCount: sql<number>`COUNT(*)` })
             .from(photos)
             .where(isPictureGroup

@@ -1257,6 +1257,9 @@ useSeoMeta({
     description: computed(() => (viewMode.value === 'group' ? groupDescription.value : description.value) || `View ${pageTitle.value || 'photos'} on PicHaus`),
     ogDescription: computed(() => (viewMode.value === 'group' ? groupDescription.value : description.value) || `View ${pageTitle.value || 'photos'} on PicHaus`),
     ogImage: computed(() => {
+        if (isPictureGroup.value) {
+            return `${origin}/api/v1/share-links/${token}/og-image`
+        }
         if (viewMode.value === 'group' && groupAlbums.value.length > 0) {
             return `${origin}/api/v1/album/${groupAlbums.value[0].id}/og-image`
         }
@@ -1264,6 +1267,9 @@ useSeoMeta({
     }),
     twitterCard: 'summary_large_image',
     twitterImage: computed(() => {
+        if (isPictureGroup.value) {
+            return `${origin}/api/v1/share-links/${token}/og-image`
+        }
         if (viewMode.value === 'group' && groupAlbums.value.length > 0) {
             return `${origin}/api/v1/album/${groupAlbums.value[0].id}/og-image`
         }
