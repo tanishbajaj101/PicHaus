@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
         password: shareLinks.password,
         showMetadata: shareLinks.showMetadata,
         faceSearchEnabled: shareLinks.faceSearchEnabled,
+        photoIds: shareLinks.photoIds,
         albumId: shareLinks.albumId,
         albumTitle: albums.title,
         albumOwnerId: albums.ownerId,
@@ -33,14 +34,16 @@ export default defineEventHandler(async (event) => {
         success: true,
         data: rows.map(link => {
             const isGroup = !!link.shareGroupId
+            const isPictureGroup = !isGroup && !!link.photoIds?.length
             const targetName = isGroup ? link.shareGroupTitle : link.albumTitle
             const url = !isGroup && link.type === 'upload' ? `/u/${link.token}` : `/v/${link.token}`
             return {
                 id: link.id,
                 token: link.token,
                 type: link.type,
-                targetType: isGroup ? 'Group' : 'Album',
+                targetType: isGroup ? 'Group' : isPictureGroup ? 'Picture Group' : 'Album',
                 targetName: targetName || 'Unknown',
+                photoCount: isPictureGroup ? link.photoIds!.length : null,
                 label: link.label,
                 views: link.views,
                 createdAt: link.createdAt ? Number(link.createdAt) : null,

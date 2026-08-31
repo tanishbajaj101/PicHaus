@@ -1,5 +1,5 @@
 import { eq, and, count, inArray } from 'drizzle-orm'
-import { shareLinks, albums, shareGroups, albumToShareGroups } from '../../../db/schema'
+import { shareLinks, albums, photos, shareGroups, albumToShareGroups } from '../../../db/schema'
 import { requireAuth } from '../../../utils/auth'
 import argon2 from 'argon2'
 
@@ -29,6 +29,39 @@ export default defineEventHandler(async (event) => {
     if (body.uploadMessage !== undefined) linkUpdateData.uploadMessage = body.uploadMessage || null
     if (body.password) linkUpdateData.password = await argon2.hash(body.password)
     else if (body.removePassword) linkUpdateData.password = null
+
+    const isPictureGroup = !link.shareGroupId && !!link.photoIds?.length
+    if (isPictureGroup) {
+        if (body.description !== undefined) {
+            if (typeof body.description !== 'string') throw createError({ statusCode: 400, statusMessage: 'Description must be text' })
+            const description = body.description.trim()
+            if (description.length > 2000) throw createError({ statusCode: 400, statusMessage: 'Description is too long' })
+            linkUpdateData.description = description || null
+        }
+        if (body.privateNotes !== undefined) {
+            if (typeof body.privateNotes !== 'string') throw createError({ statusCode: 400, statusMessage: 'Private notes must be text' })
+            const privateNotes = body.privateNotes.trim()
+            if (privateNotes.length > 4000) throw createError({ statusCode: 400, statusMessage: 'Private notes are too long' })
+            linkUpdateData.privateNotes = privateNotes || null
+        }
+        if (body.photoIds !== undefined) {
+            if (!Array.isArray(body.photoIds)) throw createError({ statusCode: 400, statusMessage: 'Photo selection must be a list' })
+            const rawPhotoIds: unknown[] = body.photoIds
+            const photoIds: string[] = [...new Set(
+                rawPhotoIds.filter((photoId): photoId is string => typeof photoId === 'string' && photoId.length > 0),
+            )]
+            if (photoIds.length === 0) throw createError({ statusCode: 400, statusMessage: 'A picture group must contain at least one photo' })
+            if (photoIds.length > 1000) throw createError({ statusCode: 400, statusMessage: 'A picture group can contain at most 1000 photos' })
+
+            const matchingPhotos = await db.select({ id: photos.id })
+                .from(photos)
+                .where(and(eq(photos.albumId, link.albumId!), inArray(photos.id, photoIds)))
+            if (matchingPhotos.length !== photoIds.length) {
+                throw createError({ statusCode: 400, statusMessage: 'Every selected photo must belong to this album' })
+            }
+            linkUpdateData.photoIds = photoIds
+        }
+    }
 
     if (Object.keys(linkUpdateData).length > 0) {
         await db.update(shareLinks).set(linkUpdateData).where(eq(shareLinks.id, id))

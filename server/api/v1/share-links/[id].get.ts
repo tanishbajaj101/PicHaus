@@ -1,5 +1,5 @@
-import { eq } from 'drizzle-orm'
-import { shareLinks } from '../../../db/schema'
+import { and, eq, inArray } from 'drizzle-orm'
+import { photos, shareLinks } from '../../../db/schema'
 import { requireAuth } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
@@ -26,6 +26,13 @@ export default defineEventHandler(async (event) => {
     if (!isOwner && user.role !== 'ADMIN') throw createError({ statusCode: 403, statusMessage: 'Unauthorized' })
 
     const groupAlbums = link.shareGroup?.albumMappings.map(m => m.album) ?? []
+    const isPictureGroup = !link.shareGroupId && !!link.photoIds?.length
+    const validPictureGroupPhotoIds = isPictureGroup && link.albumId
+        ? (await db.select({ id: photos.id })
+            .from(photos)
+            .where(and(eq(photos.albumId, link.albumId), inArray(photos.id, link.photoIds!))))
+            .map(photo => photo.id)
+        : []
 
     return {
         success: true,
@@ -39,6 +46,10 @@ export default defineEventHandler(async (event) => {
             faceSearchEnabled: link.faceSearchEnabled,
             uploadMessage: link.uploadMessage || null,
             isGroup: !!link.shareGroupId,
+            isPictureGroup,
+            photoIds: validPictureGroupPhotoIds,
+            description: link.description ?? '',
+            privateNotes: link.privateNotes ?? '',
             groupTitle: link.shareGroup?.title,
             groupDescription: link.shareGroup?.description,
             groupTags: link.shareGroup?.tags ?? [],
