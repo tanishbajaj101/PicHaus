@@ -199,7 +199,15 @@
                         <h1 class="display-title text-4xl sm:text-5xl lg:text-6xl mb-2" style="color: var(--text-1);">{{ albumName }}</h1>
                         <div class="text-sm" style="color: var(--text-2);">
                             <span v-if="eventDate">{{ formatDate(eventDate) }}</span>
-                            <div v-if="description" class="whitespace-pre-line mt-1" style="color: var(--text-3);">{{ description }}</div>
+                            <div v-if="isPictureGroup && albumDescription" class="whitespace-pre-line mt-1" style="color: var(--text-3);">
+                                {{ albumDescription }}
+                            </div>
+                            <div v-if="description && (!isPictureGroup || normalizedDescription !== normalizedAlbumDescription)"
+                                class="whitespace-pre-line mt-2" style="color: var(--text-3);">
+                                <span v-if="isPictureGroup" class="block text-[11px] font-semibold uppercase tracking-wide mb-0.5"
+                                    style="color: var(--text-2);">Subset note</span>
+                                {{ description }}
+                            </div>
                             <div v-if="photographers.length > 0" class="flex items-center gap-2 mt-2">
                                 <span style="color: var(--text-3);">{{ t('by') }}</span>
                                 <button @click="showPhotographersModal = true"
@@ -567,7 +575,10 @@ const albumId = ref('')
 const albumName = ref('')
 const ownerName = ref('')
 const description = ref('')
+const albumDescription = ref('')
 const eventDate = ref<number | null>(null)
+const normalizedDescription = computed(() => description.value.trim())
+const normalizedAlbumDescription = computed(() => albumDescription.value.trim())
 
 // Face search scope: the current album, or every album in a share group.
 const faceSearchAlbumIds = computed(() => {
@@ -1237,6 +1248,7 @@ if (linkData.value?.data) {
         albumId.value = data.albumId || ''
         albumName.value = data.albumName || ''
         description.value = data.description || ''
+        albumDescription.value = data.albumDescription || ''
         eventDate.value = data.eventDate || null
         showMetadata.value = data.showMetadata !== undefined ? data.showMetadata : false
     }
@@ -1334,6 +1346,7 @@ const handleAccess = async () => {
             albumName.value = data.albumName || albumName.value
             ownerName.value = data.ownerName || ownerName.value
             description.value = data.description || description.value
+            albumDescription.value = data.albumDescription || albumDescription.value
             isPictureGroup.value = data.type === 'picture-group' || !!data.isPictureGroup
             isAuthenticated.value = true
             await fetchPhotos()

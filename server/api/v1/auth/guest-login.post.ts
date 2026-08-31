@@ -6,13 +6,13 @@ import { enforceRateLimit } from '../../../utils/rate-limit'
 
 export default defineEventHandler(async (event) => {
     try {
-        enforceRateLimit(event, { key: 'guest-login', limit: 10, windowMs: 15 * 60 * 1000 })
         const body = await readBody(event)
         const { token, password } = body
         let { name, email, instagram } = body
         const now = getUnixTimestamp()
 
         if (!token) {
+            enforceRateLimit(event, { key: 'guest-login', limit: 10, windowMs: 15 * 60 * 1000 })
             throw createError({ statusCode: 400, statusMessage: 'Token is required' })
         }
 
@@ -25,7 +25,12 @@ export default defineEventHandler(async (event) => {
         })
 
         if (!shareLink) {
+            enforceRateLimit(event, { key: 'guest-login', limit: 10, windowMs: 15 * 60 * 1000 })
             throw createError({ statusCode: 404, statusMessage: 'Invalid link' })
+        }
+
+        if (shareLink.type !== 'view') {
+            enforceRateLimit(event, { key: 'guest-login', limit: 10, windowMs: 15 * 60 * 1000 })
         }
 
         if (shareLink.expiresAt && shareLink.expiresAt < now) {
