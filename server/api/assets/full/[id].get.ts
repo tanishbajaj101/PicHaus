@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { photos, shareLinks } from '../../../db/schema'
 import { getAuthUserId, getUnixTimestamp } from '../../../utils/auth'
+import { isCommunityMember } from '../../../utils/community'
 import { getImmutableAssetCacheControl, sendCachedAsset } from '../../../utils/asset-response'
 import { getDirectAssetUrl, statStorageFile } from '../../../utils/storage'
 
@@ -26,6 +27,7 @@ export default defineEventHandler(async (event) => {
             } else {
                 hasAccess = photo.album.collaborators.some(c => c.userId === authUserId)
             }
+            if (!hasAccess) hasAccess = await isCommunityMember(authUserId)
         }
 
         if (!hasAccess) {

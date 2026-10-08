@@ -1,12 +1,13 @@
 import { eq, or, exists, and, desc, inArray, sql } from 'drizzle-orm'
 import { albums, users, albumCollaborators, photos } from '../../../db/schema'
 import { requireAuth } from '../../../utils/auth'
+import { isMemberRecord } from '../../../utils/community'
 
 export default defineEventHandler(async (event) => {
     try {
         const user = await requireAuth(event)
 
-        const where = or(
+        const where = isMemberRecord(user) ? undefined : or(
             eq(albums.ownerId, user.id),
             exists(
                 db.select().from(albumCollaborators).where(

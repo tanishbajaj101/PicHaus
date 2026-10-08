@@ -3,6 +3,7 @@ import justifiedLayout from 'justified-layout'
 import { and, eq, isNotNull, sql } from 'drizzle-orm'
 import { albums, albumToShareGroups, photos, shareGroups, shareLinks } from '../../../../db/schema'
 import { getAuthUserId, getUnixTimestamp } from '../../../../utils/auth'
+import { isCommunityMember } from '../../../../utils/community'
 import { readStorageFile } from '../../../../utils/storage'
 
 const STORY_WIDTH = 1440
@@ -61,9 +62,10 @@ export default defineEventHandler(async (event) => {
 
     const isOwner = authUserId === album.owner.id
     const isCollaborator = !!authUserId && album.collaborators.some(c => c.userId === authUserId)
+    const isMember = await isCommunityMember(authUserId)
     let hasShareAccess = false
 
-    if (!album.isPublic && !isOwner && !isCollaborator) {
+    if (!album.isPublic && !isOwner && !isCollaborator && !isMember) {
         const shareToken = getCookie(event, `album-access-${id}`)
         if (shareToken) {
             const link = await db.query.shareLinks.findFirst({ where: eq(shareLinks.token, shareToken) })
@@ -89,7 +91,7 @@ export default defineEventHandler(async (event) => {
         }
     }
 
-    if (!album.isPublic && !isOwner && !isCollaborator && !hasShareAccess) {
+    if (!album.isPublic && !isOwner && !isCollaborator && !hasShareAccess && !isMember) {
         throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
     }
 

@@ -1,6 +1,7 @@
 import { eq, and, inArray } from 'drizzle-orm'
 import { albums, albumCollaborators, photos } from '../../../../../db/schema'
 import { requireAuth } from '../../../../../utils/auth'
+import { isMemberRecord } from '../../../../../utils/community'
 import { deleteFile } from '../../../../../utils/upload'
 import { requireRouterParamValue, requireStringArray } from '../../../../../utils/api'
 
@@ -25,7 +26,8 @@ export default defineEventHandler(async (event) => {
         const isOwner = album.ownerId === user.id
         const isCollaborator = album.collaborators.some(c => c.userId === user.id && c.role !== 'viewer')
         const isAdmin = user.role === 'ADMIN'
-        if (!isOwner && !isCollaborator && !isAdmin) throw createError({ statusCode: 403, statusMessage: 'Permission denied' })
+        const isMember = isMemberRecord(user)
+        if (!isOwner && !isCollaborator && !isAdmin && !isMember) throw createError({ statusCode: 403, statusMessage: 'Permission denied' })
 
         const photosToDelete = await db.select()
             .from(photos)

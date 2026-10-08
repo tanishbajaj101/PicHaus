@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { albums, photos, shareLinks, users } from '../../../../db/schema'
 import { getAuthUserId, getUnixTimestamp } from '../../../../utils/auth'
+import { isMemberRecord } from '../../../../utils/community'
 
 export default defineEventHandler(async (event) => {
     try {
@@ -34,7 +35,7 @@ export default defineEventHandler(async (event) => {
             if (!hasAccess && user) {
                 const isOwner = album.ownerId === user.id
                 const isCollaborator = album.collaborators.some(c => c.userId === user.id)
-                if (isOwner || isCollaborator) hasAccess = true
+                if (isOwner || isCollaborator || isMemberRecord(user)) hasAccess = true
             }
 
             if (!hasAccess) throw createError({ statusCode: 403, statusMessage: 'Forbidden' })

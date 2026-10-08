@@ -1,6 +1,7 @@
 import { eq, and, or, desc, asc, ilike, sql, inArray } from 'drizzle-orm'
 import { albums, photos, users, albumCollaborators, shareLinks, shareGroups, albumToShareGroups } from '../../../db/schema'
 import { getAuthUserId, getUnixTimestamp } from '../../../utils/auth'
+import { isMemberRecord } from '../../../utils/community'
 
 export default defineEventHandler(async (event) => {
     try {
@@ -42,17 +43,19 @@ export default defineEventHandler(async (event) => {
         const isCollaborator = !!collaborator
 
         let hasEmail = false
+        let isMember = false
         if (authUserId) {
             const userRecord = await db.query.users.findFirst({
                 where: eq(users.id, authUserId),
-                columns: { email: true }
+                columns: { email: true, passwordHash: true, googleId: true, microsoftId: true, role: true }
             })
             hasEmail = !!userRecord?.email
+            isMember = isMemberRecord(userRecord ?? null)
         }
 
         let hasShareLinkAccess = false
 
-        if (!album.isPublic && !isOwner && !isCollaborator) {
+        if (!album.isPublic && !isOwner && !isCollaborator && !isMember) {
             const shareToken = getCookie(event, `album-access-${id}`)
             if (shareToken) {
                 const link = await db.query.shareLinks.findFirst({ where: eq(shareLinks.token, shareToken) })
@@ -82,7 +85,7 @@ export default defineEventHandler(async (event) => {
             }
         }
 
-        if (!album.isPublic && !isOwner && !isCollaborator && !hasShareLinkAccess) {
+        if (!album.isPublic && !isOwner && !isCollaborator && !hasShareLinkAccess && !isMember) {
             throw createError({ statusCode: 403, statusMessage: 'You do not have permission to view this album' })
         }
 
@@ -187,7 +190,7 @@ export default defineEventHandler(async (event) => {
             } : null,
         }))
 
-        const isGuest = !isOwner && !isCollaborator
+        const isGuest = !isOwner && !isCollaborator && !isMember
 
         const collaborators = album.collaborators
             .map(collab => ({
@@ -235,7 +238,7 @@ export default defineEventHandler(async (event) => {
                     isCollaborator,
                     canEdit: isOwner && hasEmail,
                     canDelete: isOwner && hasEmail,
-                    canUpload: isOwner || (isCollaborator && ['admin', 'editor'].includes(collaborator.role)),
+                    canUpload: isOwner || isMember || (isCollaborator && ['admin', 'editor'].includes(collaborator.role)),
                 },
                 pagination: { page, limit, total: totalPhotos, hasMore: skip + photoRows.length < totalPhotos },
                 filtersData: {

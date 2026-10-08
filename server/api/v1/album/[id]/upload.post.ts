@@ -1,6 +1,7 @@
 import { eq, and, inArray } from 'drizzle-orm'
 import { albums, albumCollaborators, photos } from '../../../../db/schema'
 import { requireAuth } from '../../../../utils/auth'
+import { isMemberRecord } from '../../../../utils/community'
 import sharp from 'sharp'
 import {
     calculateFileHash,
@@ -23,7 +24,7 @@ export default defineEventHandler(async (event) => {
 
         const user = await requireAuth(event)
 
-        if (album.ownerId !== user.id) {
+        if (album.ownerId !== user.id && !isMemberRecord(user)) {
             const collaborator = await db.query.albumCollaborators.findFirst({
                 where: and(
                     eq(albumCollaborators.albumId, albumId),

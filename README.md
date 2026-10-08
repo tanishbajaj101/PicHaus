@@ -11,8 +11,9 @@ A self-hosted, collaborative photo album platform built for photography clubs. P
 3. [Quick Start](#quick-start)
 4. [Docker Deployment](#docker-deployment)
 5. [Environment Variables](#environment-variables)
-6. [First-Time Setup](#first-time-setup)
-7. [User Guide](#user-guide)
+6. [Community mode (this fork)](#community-mode-this-fork)
+7. [First-Time Setup](#first-time-setup)
+8. [User Guide](#user-guide)
    - [Albums](#albums)
    - [Photos](#photos)
    - [Share Links](#share-links)
@@ -23,13 +24,13 @@ A self-hosted, collaborative photo album platform built for photography clubs. P
    - [API Tokens](#api-tokens)
    - [Settings](#settings)
    - [Admin Panel](#admin-panel)
-8. [OAuth and Registration](#oauth-and-registration)
-9. [Invites and Password Resets](#invites-and-password-resets)
-10. [Branding](#branding)
-11. [External API Reference](#external-api-reference)
-12. [Authentication](#authentication)
-13. [Storage](#storage)
-14. [Database](#database)
+9. [OAuth and Registration](#oauth-and-registration)
+10. [Invites and Password Resets](#invites-and-password-resets)
+11. [Branding](#branding)
+12. [External API Reference](#external-api-reference)
+13. [Authentication](#authentication)
+14. [Storage](#storage)
+15. [Database](#database)
 
 ---
 
@@ -182,6 +183,7 @@ volumes:
 | `GOOGLE_CLIENT_SECRET` | No | — | OAuth 2.0 client secret — required alongside `GOOGLE_CLIENT_ID` |
 | `MICROSOFT_CLIENT_ID` | No | — | OAuth 2.0 application/client ID from Microsoft Entra ID — enables Microsoft Sign-In when set |
 | `MICROSOFT_CLIENT_SECRET` | No | — | OAuth 2.0 client secret — required alongside `MICROSOFT_CLIENT_ID` |
+| `COMMUNITY_MODE` | No | `true` | This fork only. Set to `false` to restore upstream owner/collaborator-only behaviour. See [Community mode](#community-mode-this-fork). |
 
 > **Security**: `AUTH_SECRET` must be a random string of at least 32 characters. In production the server will refuse to start without it.
 
@@ -197,6 +199,21 @@ volumes:
 > - **Always-Compress Threshold**: Any uploaded image exceeding `AUTO_COMPRESS_LIMIT_MB` (default: `15`MB) is always compressed.
 > - **Size-to-Resolution Ratio**: If a JPEG is larger than necessary for its actual resolution (Megapixels), it gets compressed. By default, if the ratio of file size (in MB) to image resolution (in Megapixels) exceeds `AUTO_COMPRESS_RATIO_MB_PER_MP` (default: `0.5` MB/MP), it is compressed. For example, a 12MP photo that is 9MB has a ratio of 0.75, which triggers compression.
 > - **Fresh Camera vs Edited Photos**: Edited photos exported from software (e.g. Lightroom, Photoshop) are respected as-is, unless they exceed the always-compress threshold or the ratio check. Direct-from-camera photos without editor tags are compressed if they exceed `FRESH_COMPRESS_LIMIT_MB` (default: `4`MB) or 15 megapixels.
+
+---
+
+## Community mode (this fork)
+
+This fork adds an opt-out "community mode" for small groups who want to share everything with each other, rather than keeping albums private by default.
+
+- Every signed-in **member** — any account with a password, Google, or Microsoft login, or the `ADMIN` role — can see, upload to, and download from **every** album, not just ones they own or were added to as a collaborator.
+- Anyone can create albums (this was already true upstream).
+- Anonymous guest accounts created by upload share links are **not** members, even if community mode is on. A share link still only unlocks the one album it points to.
+- Album edit, album delete, cover photo, share links, collaborator management, and batch album edit remain **owner-only** — community mode only widens viewing, uploading, and downloading.
+- On a shared album, members can still only delete photos they uploaded themselves; only the album owner or an admin can delete any photo.
+- Deleting a user as an admin removes that user's contributions everywhere: their own albums (and the photos in them) plus every photo they uploaded in anyone else's album, including the files on disk.
+
+Set `COMMUNITY_MODE="false"` in your environment to disable all of the above and restore upstream's owner/collaborator-only behaviour.
 
 ---
 

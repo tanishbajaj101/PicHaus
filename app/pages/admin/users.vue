@@ -444,7 +444,7 @@ const updateRole = async (targetUser: User, event: Event) => {
 }
 
 const deleteUser = async (targetUser: User) => {
-    if (!await dialog.confirm(`Are you sure you want to delete ${targetUser.name}? This will delete all their albums and photos.`, { danger: true })) return
+    if (!await dialog.confirm(`Are you sure you want to delete ${targetUser.name}? This will permanently delete their albums and every photo they uploaded, including photos they uploaded in other people's albums.`, { danger: true })) return
 
     try {
         await $fetch(`/api/v1/admin/users/${targetUser.id}`, {

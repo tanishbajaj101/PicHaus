@@ -1,6 +1,7 @@
 import { eq, and, inArray } from 'drizzle-orm'
 import { albums, albumCollaborators, photos } from '../../../../db/schema'
 import { requireAuth } from '../../../../utils/auth'
+import { isMemberRecord } from '../../../../utils/community'
 
 export default defineEventHandler(async (event) => {
     try {
@@ -23,7 +24,7 @@ export default defineEventHandler(async (event) => {
 
         const isOwner = album.ownerId === user.id
         const isCollaborator = album.collaborators.some(c => c.userId === user.id && ['admin', 'editor'].includes(c.role))
-        if (!isOwner && !isCollaborator) throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
+        if (!isOwner && !isCollaborator && !isMemberRecord(user)) throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
 
         const existingPhotos = await db.select({ fileHash: photos.fileHash })
             .from(photos)
