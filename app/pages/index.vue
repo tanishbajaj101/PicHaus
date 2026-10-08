@@ -5,7 +5,7 @@
                 style="background: var(--accent-light);">
                 <Icon name="lucide:camera" class="w-8 h-8" style="color: var(--accent);" :stroke-width="1.5" />
             </div>
-            <h1 class="text-2xl font-bold tracking-tight mb-1" style="color: var(--text-1);">PicHaus</h1>
+            <h1 class="text-2xl font-bold tracking-tight mb-1" style="color: var(--text-1);">Gooncave</h1>
             <p class="text-sm mb-6" style="color: var(--text-2);">Collaborative Photo Albums</p>
             <div class="flex items-center justify-center gap-2 text-sm" style="color: var(--text-3);">
                 <span class="w-4 h-4 rounded-full border-2 animate-spin"

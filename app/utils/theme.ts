@@ -1,7 +1,7 @@
 export type ThemePreference = 'dark' | 'light'
 
 export const THEME_STORAGE_KEY = 'theme'
-export const ACCENT_STORAGE_KEY = 'pichaus-accent'
+export const ACCENT_STORAGE_KEY = 'gooncave-accent'
 
 const HEX_COLOR_RE = /^#[0-9a-f]{6}$/i
 

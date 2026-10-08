@@ -15,7 +15,7 @@
                     style="background: var(--accent-light);">
                     <Icon name="lucide:camera" class="w-8 h-8" style="color: var(--accent);" :stroke-width="1.5" />
                 </div>
-                <h1 class="text-2xl font-bold tracking-tight" style="color: var(--text-1);">PicHaus</h1>
+                <h1 class="text-2xl font-bold tracking-tight" style="color: var(--text-1);">Gooncave</h1>
                 <p class="mt-1 text-sm" style="color: var(--text-2);">Sign in to your account</p>
             </div>
 
@@ -124,7 +124,7 @@ useHead({
         {
             innerHTML: `
                 (function() {
-                    if (typeof window !== 'undefined' && localStorage.getItem('pichaus_access_token')) {
+                    if (typeof window !== 'undefined' && localStorage.getItem('gooncave_access_token')) {
                         document.documentElement.classList.add('login-loading');
                     }
                 })();

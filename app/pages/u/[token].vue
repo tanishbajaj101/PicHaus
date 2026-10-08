@@ -60,7 +60,7 @@
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-semibold" style="color: var(--text-1);">Sign In</p>
-                            <p class="text-xs mt-0.5" style="color: var(--text-3);">Already have a PicHaus account</p>
+                            <p class="text-xs mt-0.5" style="color: var(--text-3);">Already have a Gooncave account</p>
                         </div>
                         <Icon name="lucide:chevron-right" class="w-4 h-4 flex-shrink-0" style="color: var(--text-3);" :stroke-width="2" />
                     </button>

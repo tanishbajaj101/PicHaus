@@ -15,7 +15,7 @@ import path from 'node:path'
 import process from 'node:process'
 
 /**
- * PicHaus backup support library.
+ * Gooncave backup support library.
  *
  * All child processes are spawned with node:child_process and files are
  * handled with node:fs so the backup tool can also run under plain Node.js
@@ -30,7 +30,7 @@ import process from 'node:process'
  *
  * manifest.json schema:
  * {
- *   "tool": "pichaus-backup",
+ *   "tool": "gooncave-backup",
  *   "version": 1,
  *   "createdAt": "2026-08-14T12:00:00.000Z",
  *   "appVersion": "1.2.3",
@@ -51,7 +51,7 @@ import process from 'node:process'
  * them, then restore dump.pg with pg_restore and unpack storage.tar.
  */
 
-export const toolName = 'pichaus-backup'
+export const toolName = 'gooncave-backup'
 export const manifestVersion = 1
 export const backupTimestampFormat = 'YYYYMMDD-HHmmss'
 
@@ -223,14 +223,14 @@ export async function findRepoRoot(start = process.cwd()): Promise<string> {
     const pkgPath = path.join(current, 'package.json')
     try {
       const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as { name?: string }
-      if (pkg.name === 'PicHaus') return current
+      if (pkg.name === 'Gooncave') return current
     } catch {
       // Continue walking up when package.json is absent or unreadable.
     }
     const parent = path.dirname(current)
     if (parent === current) {
       throw new BackupError(
-        'Could not find the PicHaus repo root: no package.json with name "PicHaus" in this directory or its parents. Run this tool from the repo root.',
+        'Could not find the Gooncave repo root: no package.json with name "Gooncave" in this directory or its parents. Run this tool from the repo root.',
       )
     }
     current = parent
@@ -388,8 +388,8 @@ export async function runBackup(options: BackupOptions): Promise<ArchiveResult> 
   } = options
 
   await mkdir(outputDir, { recursive: true })
-  const stagingDir = await mkdtemp(path.join(outputDir, '.pichaus-backup-staging-'))
-  const archiveBase = `pichaus-backup-${nowTimestamp()}`
+  const stagingDir = await mkdtemp(path.join(outputDir, '.gooncave-backup-staging-'))
+  const archiveBase = `gooncave-backup-${nowTimestamp()}`
   const plainArchivePath = path.join(outputDir, `${archiveBase}.tar.gz`)
   const finalArchivePath = encrypt
     ? path.join(outputDir, `${archiveBase}.tar.gz.gpg`)

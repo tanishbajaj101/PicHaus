@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * PicHaus backup wizard.
+ * Gooncave backup wizard.
  *
  * Usage:
  *   bun run tools/backup.ts                 interactive guided wizard
@@ -22,7 +22,7 @@
  *   --help                show this help and exit
  *
  * The archive is written as:
- *   <output>/pichaus-backup-YYYYMMDD-HHmmss.tar.gz[.gpg]
+ *   <output>/gooncave-backup-YYYYMMDD-HHmmss.tar.gz[.gpg]
  * with dump.pg, storage.tar, optional env.backup, and manifest.json at the
  * archive root. See tools/lib/backup.ts for the manifest schema.
  */
@@ -57,7 +57,7 @@ function fail(message: string): never {
 async function main(): Promise<void> {
   const cli = parseCliArgs(process.argv.slice(2))
 
-  console.log('PicHaus backup')
+  console.log('Gooncave backup')
   console.log(
     'Creates a self-contained archive of the database, uploaded files, and optionally .env.',
   )
@@ -211,7 +211,7 @@ function parseCliArgs(args: string[]): CliOptions {
 function printUsage(): void {
   console.log(
     [
-      'PicHaus backup',
+      'Gooncave backup',
       '',
       'Usage: bun run tools/backup.ts [options]',
       '',

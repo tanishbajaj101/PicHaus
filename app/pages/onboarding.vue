@@ -9,7 +9,7 @@
                     style="background: var(--accent-light);">
                     <Icon name="lucide:instagram" class="w-7 h-7" style="color: var(--accent);" :stroke-width="1.75" />
                 </div>
-                <h1 class="text-2xl font-bold mb-2" style="color: var(--text-1);">Welcome to PicHaus</h1>
+                <h1 class="text-2xl font-bold mb-2" style="color: var(--text-1);">Welcome to Gooncave</h1>
                 <p class="text-sm" style="color: var(--text-2);">
                     {{ isGuest ? 'Please complete your account registration to access other areas.' : "Let's complete your profile setup." }}
                 </p>

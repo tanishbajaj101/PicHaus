@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * PicHaus restore wizard.
+ * Gooncave restore wizard.
  *
  * Usage:
  *   bun run tools/restore.ts <archive>                          guided wizard
@@ -94,8 +94,8 @@ function fail(message: string): never {
 async function main(): Promise<void> {
   const cli = parseCliArgs(process.argv.slice(2))
 
-  console.log('PicHaus restore')
-  console.log('Restores a database, storage directory, and optional .env from a PicHaus backup archive.')
+  console.log('Gooncave restore')
+  console.log('Restores a database, storage directory, and optional .env from a Gooncave backup archive.')
 
   try {
     step('Preflight...')
@@ -257,7 +257,7 @@ function setCliValue(options: CliOptions, flag: string, value: string): void {
 function printUsage(): void {
   console.log(
     [
-      'PicHaus restore',
+      'Gooncave restore',
       '',
       'Usage: bun run tools/restore.ts <archive> [options]',
       '',
@@ -447,15 +447,15 @@ async function checkSafety(plan: RestorePlan, cli: CliOptions): Promise<SafetyGa
       .join('\n')
     if (cli.yes && !cli.overwrite) {
       fail(
-        'Target database already contains PicHaus tables. Pass --overwrite to proceed in non-interactive mode.',
+        'Target database already contains Gooncave tables. Pass --overwrite to proceed in non-interactive mode.',
       )
     }
     await requireOverwrite(
-      `Target database ${maskDatabaseUrl(plan.databaseUrl)} already contains PicHaus tables.`,
+      `Target database ${maskDatabaseUrl(plan.databaseUrl)} already contains Gooncave tables.`,
       `Restoring will drop and recreate these tables:\n${details}`,
     )
   } else {
-    console.log(`  Target database ${maskDatabaseUrl(plan.databaseUrl)} has no existing PicHaus tables.`)
+    console.log(`  Target database ${maskDatabaseUrl(plan.databaseUrl)} has no existing Gooncave tables.`)
   }
 
   console.log('  Checking target storage...')

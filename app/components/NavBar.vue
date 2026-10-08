@@ -295,13 +295,13 @@ const props = defineProps<{
 const { settings } = useSiteSettings()
 
 const effectiveLogoImageUrl = computed(() => props.logoImageUrl ?? settings.value.logoImageUrl ?? '')
-const effectiveLogoText = computed(() => props.logoText || settings.value.siteName || 'PicHaus')
+const effectiveLogoText = computed(() => props.logoText || settings.value.siteName || 'Gooncave')
 
 const displayTitle = computed(() => {
     const value = (props.title || '').trim()
     if (!value) return ''
     const normalized = value.replace(/[^a-zA-Z]/g, '').toLowerCase()
-    if (normalized === 'pichaus') return ''
+    if (normalized === 'gooncave') return ''
     return value
 })
 

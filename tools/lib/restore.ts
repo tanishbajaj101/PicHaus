@@ -19,7 +19,7 @@ import path from 'node:path'
 import process from 'node:process'
 import type { Readable } from 'node:stream'
 
-export const manifestToolName = 'pichaus-backup'
+export const manifestToolName = 'gooncave-backup'
 
 export class RestoreError extends Error {
   constructor(message: string) {
@@ -215,7 +215,7 @@ export function isEncryptedArchive(archivePath: string): boolean {
 }
 
 export async function createTempRoot(): Promise<string> {
-  return mkdtemp(path.join(tmpdir(), 'pichaus-restore-'))
+  return mkdtemp(path.join(tmpdir(), 'gooncave-restore-'))
 }
 
 export async function cleanupTempRoot(tempRoot: string | undefined): Promise<void> {
@@ -268,7 +268,7 @@ export async function extractArchive(
   const manifestPath = path.join(stagingDir, 'manifest.json')
   if (!(await fileExists(manifestPath))) {
     throw new RestoreError(
-      'manifest.json was not found at the archive root. This does not look like a PicHaus backup archive.',
+      'manifest.json was not found at the archive root. This does not look like a Gooncave backup archive.',
     )
   }
   const manifest = await readManifest(manifestPath)
@@ -417,7 +417,7 @@ export async function listDockerVolumes(): Promise<string[]> {
 }
 
 export function suggestDockerVolumes(volumes: string[]): string[] {
-  const needle = /pichaus|pic|upload|storage|media|data|photo/i
+  const needle = /gooncave|pic|upload|storage|media|data|photo/i
   return volumes.filter((name) => needle.test(name))
 }
 
@@ -726,7 +726,7 @@ async function readManifest(manifestPath: string): Promise<Manifest> {
   if (manifest.tool !== undefined && manifest.tool !== manifestToolName) {
     throw new RestoreError(
       `manifest.tool is "${String(manifest.tool)}", expected "${manifestToolName}". ` +
-        `This archive was not created by the PicHaus backup tool.`,
+        `This archive was not created by the Gooncave backup tool.`,
     )
   }
   if (!manifest.sha256 || typeof manifest.sha256 !== 'object' || Object.keys(manifest.sha256).length === 0) {

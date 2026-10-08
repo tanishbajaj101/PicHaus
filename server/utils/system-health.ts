@@ -11,8 +11,8 @@ type SystemOutage = {
 }
 
 declare const globalThis: {
-    _pichausOutage?: SystemOutage
-    _pichausLastHealthCheck?: number
+    _gooncaveOutage?: SystemOutage
+    _gooncaveLastHealthCheck?: number
 } & typeof global
 
 const HEALTH_CHECK_INTERVAL_MS = 2000
@@ -48,12 +48,12 @@ function sqlList(values: string[]) {
 }
 
 export function getSystemOutage() {
-    return globalThis._pichausOutage
+    return globalThis._gooncaveOutage
 }
 
 export function markSystemOutage(reason: string, error?: unknown) {
-    if (!globalThis._pichausOutage) {
-        globalThis._pichausOutage = { reason, error, detectedAt: Date.now() }
+    if (!globalThis._gooncaveOutage) {
+        globalThis._gooncaveOutage = { reason, error, detectedAt: Date.now() }
     }
 
     console.error(`[system] Out of order: ${reason}`)
@@ -61,14 +61,14 @@ export function markSystemOutage(reason: string, error?: unknown) {
 }
 
 export async function assertSystemHealthy() {
-    if (globalThis._pichausOutage) return
+    if (globalThis._gooncaveOutage) return
 
     const now = Date.now()
-    if (globalThis._pichausLastHealthCheck && now - globalThis._pichausLastHealthCheck < HEALTH_CHECK_INTERVAL_MS) {
+    if (globalThis._gooncaveLastHealthCheck && now - globalThis._gooncaveLastHealthCheck < HEALTH_CHECK_INTERVAL_MS) {
         return
     }
 
-    globalThis._pichausLastHealthCheck = now
+    globalThis._gooncaveLastHealthCheck = now
 
     try {
         await validateSystemHealth()
@@ -140,7 +140,7 @@ async function validateRequiredSchema() {
 
 async function validateMigrationsApplied() {
     const rows = await db.execute(sql`
-        SELECT name FROM __pichaus_migrations
+        SELECT name FROM __gooncave_migrations
     `) as { name: string }[]
 
     const applied = new Set(rows.map(row => row.name))

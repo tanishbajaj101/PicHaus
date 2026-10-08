@@ -258,14 +258,14 @@ END $$`,
         statements: [
             `CREATE TABLE IF NOT EXISTS "site_settings" (
     "id"                 integer     PRIMARY KEY DEFAULT 1,
-    "siteName"           text        NOT NULL DEFAULT 'PicHaus',
+    "siteName"           text        NOT NULL DEFAULT 'Gooncave',
     "accentColor"        text,
     "logoImageId"        uuid        REFERENCES "logos"("id") ON DELETE SET NULL,
     "allowRegistration"  boolean     NOT NULL DEFAULT false,
     "updatedAt"          bigint      NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW())::bigint
 )`,
             `INSERT INTO "site_settings" ("id", "siteName", "updatedAt")
-VALUES (1, 'PicHaus', EXTRACT(EPOCH FROM NOW())::bigint)
+VALUES (1, 'Gooncave', EXTRACT(EPOCH FROM NOW())::bigint)
 ON CONFLICT ("id") DO NOTHING`,
         ],
     },

@@ -7,7 +7,7 @@
                 <div class="text-center mb-8">
                     <img v-if="linkData?.data?.logoImageId" :src="`/api/assets/logo/${linkData.data.logoImageId}`"
                         alt="Logo" class="h-12 max-w-[180px] object-contain mx-auto mb-2" />
-                    <h1 v-else class="text-3xl font-bold mb-2" style="color: var(--text-1);">{{ linkData?.data?.logoText || '📸 PicHaus' }}</h1>
+                    <h1 v-else class="text-3xl font-bold mb-2" style="color: var(--text-1);">{{ linkData?.data?.logoText || '📸 Gooncave' }}</h1>
                     <div v-if="loading" class="flex justify-center">
                         <div class="w-6 h-6 rounded-full border-2 animate-spin"
                             style="border-color: var(--separator); border-top-color: var(--accent);"></div>
@@ -643,7 +643,7 @@ const downloadFavoritesAsZip = async () => {
 const favoritesMap = reactive<Record<string, boolean>>({})
 const favorites = computed(() => new Set(Object.keys(favoritesMap).filter(k => favoritesMap[k])))
 
-const favoritesKey = (contextId: string) => `pichaus_favorites_${token}_${contextId}`
+const favoritesKey = (contextId: string) => `gooncave_favorites_${token}_${contextId}`
 
 const currentFavoritesKey = computed(() => {
     if (viewMode.value === 'album' && albumId.value) return favoritesKey(albumId.value)
@@ -1155,10 +1155,10 @@ const url = useRequestURL()
 const origin = url.origin
 
 useSeoMeta({
-    title: computed(() => pageTitle.value ? `${pageTitle.value} | PicHaus` : 'PicHaus'),
+    title: computed(() => pageTitle.value ? `${pageTitle.value} | Gooncave` : 'Gooncave'),
     ogTitle: computed(() => pageTitle.value),
-    description: computed(() => (viewMode.value === 'group' ? groupDescription.value : description.value) || `View ${pageTitle.value || 'photos'} on PicHaus`),
-    ogDescription: computed(() => (viewMode.value === 'group' ? groupDescription.value : description.value) || `View ${pageTitle.value || 'photos'} on PicHaus`),
+    description: computed(() => (viewMode.value === 'group' ? groupDescription.value : description.value) || `View ${pageTitle.value || 'photos'} on Gooncave`),
+    ogDescription: computed(() => (viewMode.value === 'group' ? groupDescription.value : description.value) || `View ${pageTitle.value || 'photos'} on Gooncave`),
     ogImage: computed(() => {
         if (viewMode.value === 'group' && groupAlbums.value.length > 0) {
             return `${origin}/api/v1/album/${groupAlbums.value[0].id}/og-image`

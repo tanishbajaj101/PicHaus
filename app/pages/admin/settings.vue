@@ -20,7 +20,7 @@
                         <!-- Site Name -->
                         <div>
                             <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Site Name</label>
-                            <input v-model="form.siteName" type="text" placeholder="PicHaus"
+                            <input v-model="form.siteName" type="text" placeholder="Gooncave"
                                 class="w-full px-3.5 py-2.5 text-sm rounded-xl transition"
                                 style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1); outline: none;"
                                 @focus="($event.target as HTMLElement).style.borderColor = 'var(--accent)'; ($event.target as HTMLElement).style.boxShadow = '0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent)'"
@@ -135,7 +135,7 @@ const saveSuccess = ref(false)
 const logos = ref<Logo[]>([])
 
 const form = ref({
-    siteName: 'PicHaus',
+    siteName: 'Gooncave',
     accentColor: '',
     logoImageId: null as string | null,
     allowRegistration: false,

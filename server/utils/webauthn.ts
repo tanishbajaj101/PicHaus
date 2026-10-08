@@ -16,7 +16,7 @@ export type { AuthenticatorTransportFuture }
 
 export const getRpConfig = () => ({
     rpID: process.env.WEBAUTHN_RP_ID || 'localhost',
-    rpName: process.env.WEBAUTHN_RP_NAME || 'PicHaus',
+    rpName: process.env.WEBAUTHN_RP_NAME || 'Gooncave',
     origin: process.env.WEBAUTHN_ORIGIN || 'http://localhost:3000',
 })
 

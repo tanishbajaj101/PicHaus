@@ -14,7 +14,7 @@ function applyAccent(color: string | null) {
 
 export const useSiteSettings = () => {
     const _settings = useState<SiteSettings>('siteSettings', () => ({
-        siteName: 'PicHaus',
+        siteName: 'Gooncave',
         accentColor: null,
         logoImageUrl: null,
         logoImageId: null,

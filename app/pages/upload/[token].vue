@@ -38,7 +38,7 @@
             <div class="text-center mb-8">
                 <img v-if="albumInfo?.logoImageId" :src="`/api/assets/logo/${albumInfo.logoImageId}`" alt="Logo"
                     class="h-16 max-w-[200px] object-contain mx-auto mb-2" />
-                <h1 v-else class="text-4xl font-bold mb-2" style="color: var(--text-1);">{{ albumInfo?.logoText || '📸 PicHaus' }}</h1>
+                <h1 v-else class="text-4xl font-bold mb-2" style="color: var(--text-1);">{{ albumInfo?.logoText || '📸 Gooncave' }}</h1>
                 <p class="text-sm" style="color: var(--text-2);">Join to upload photos</p>
             </div>
 
@@ -94,7 +94,7 @@
             <div class="text-center mb-8">
                 <img v-if="albumInfo?.logoImageId" :src="`/api/assets/logo/${albumInfo.logoImageId}`" alt="Logo"
                     class="h-14 max-w-[180px] object-contain mx-auto mb-3" />
-                <h1 v-else class="text-3xl font-bold mb-2" style="color: var(--text-1);">{{ albumInfo?.logoText || '📸 PicHaus' }}</h1>
+                <h1 v-else class="text-3xl font-bold mb-2" style="color: var(--text-1);">{{ albumInfo?.logoText || '📸 Gooncave' }}</h1>
                 <p class="text-base font-semibold" style="color: var(--text-1);">{{ albumInfo?.albumName }}</p>
                 <p v-if="albumInfo?.description" class="text-sm mt-1" style="color: var(--text-2);">{{ albumInfo.description }}</p>
                 <div class="flex items-center justify-center gap-3 mt-2 text-xs" style="color: var(--text-3);">
@@ -271,7 +271,7 @@
                 </div>
             </div>
 
-            <p class="text-center text-xs mt-10" style="color: var(--text-3);">Powered by PicHaus</p>
+            <p class="text-center text-xs mt-10" style="color: var(--text-3);">Powered by Gooncave</p>
         </div>
 
         <!-- Hidden file input -->

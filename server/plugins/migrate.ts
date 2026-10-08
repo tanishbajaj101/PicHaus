@@ -17,13 +17,13 @@ export default defineNitroPlugin(async () => {
         const [{ trackingExists }] = await db.execute(sql`
             SELECT EXISTS (
                 SELECT FROM information_schema.tables
-                WHERE table_schema = 'public' AND table_name = '__pichaus_migrations'
+                WHERE table_schema = 'public' AND table_name = '__gooncave_migrations'
             ) AS "trackingExists"
         `) as any[]
 
         if (!trackingExists) {
             await db.execute(sql`
-                CREATE TABLE __pichaus_migrations (
+                CREATE TABLE __gooncave_migrations (
                     id         SERIAL  PRIMARY KEY,
                     name       TEXT    NOT NULL UNIQUE,
                     applied_at BIGINT  NOT NULL
@@ -47,7 +47,7 @@ export default defineNitroPlugin(async () => {
         let applied = 0
         for (const migration of MIGRATIONS) {
             const [existing] = await db.execute(sql`
-                SELECT id FROM __pichaus_migrations WHERE name = ${migration.name}
+                SELECT id FROM __gooncave_migrations WHERE name = ${migration.name}
             `) as any[]
 
             let shouldRun = !existing
@@ -89,7 +89,7 @@ export default defineNitroPlugin(async () => {
             }
             if (!existing) {
                 await db.execute(sql`
-                    INSERT INTO __pichaus_migrations (name, applied_at)
+                    INSERT INTO __gooncave_migrations (name, applied_at)
                     VALUES (${migration.name}, ${BigInt(Date.now())})
                 `)
             }

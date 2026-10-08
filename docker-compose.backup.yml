@@ -1,13 +1,13 @@
 # Backup/restore profile for Docker deployments.
 #
-# One-command backup (writes ./backups/pichaus-backup-*.tar.gz):
+# One-command backup (writes ./backups/gooncave-backup-*.tar.gz):
 #   docker compose -f docker-compose.yml -f docker-compose.backup.yml \
 #     --profile backup run --rm backup
 #
-# Restore an archive from ./backups into the empty pichaus-storage volume:
+# Restore an archive from ./backups into the empty gooncave-storage volume:
 #   docker compose -f docker-compose.yml -f docker-compose.backup.yml \
 #     --profile backup run --rm restore \
-#     /backups/pichaus-backup-20260814-120000.tar.gz \
+#     /backups/gooncave-backup-20260814-120000.tar.gz \
 #     --yes --db-url "$DATABASE_URL" --storage-dir /app/storage --no-env
 #
 # The production image ships pg_dump/pg_restore/psql/gpg and the tools/ TS
@@ -17,16 +17,16 @@ services:
   backup:
     profiles: ["backup"]
     build: .
-    image: pichaus-backup:local
+    image: gooncave-backup:local
     environment:
       # The tools read /app/.env first; these values are fallbacks.
-      DATABASE_URL: "${DATABASE_URL:-postgresql://pichaus:pichaus@db:5432/pichaus}"
+      DATABASE_URL: "${DATABASE_URL:-postgresql://gooncave:gooncave@db:5432/gooncave}"
       STORAGE_DRIVER: "${STORAGE_DRIVER:-local}"
       STORAGE_DIR: "${STORAGE_DIR:-/app/storage}"
     volumes:
       - ./package.json:/app/package.json:ro # repo-root detection
       - ./.env:/app/.env:ro # tool config, never written by --no-env
-      - pichaus-storage:/app/storage:ro # uploads, read-only
+      - gooncave-storage:/app/storage:ro # uploads, read-only
       - ./backups:/backups # archive output on the host
     depends_on:
       - db
@@ -36,11 +36,11 @@ services:
   restore:
     profiles: ["backup"]
     build: .
-    image: pichaus-backup:local
+    image: gooncave-backup:local
     environment:
-      DATABASE_URL: "${DATABASE_URL:-postgresql://pichaus:pichaus@db:5432/pichaus}"
+      DATABASE_URL: "${DATABASE_URL:-postgresql://gooncave:gooncave@db:5432/gooncave}"
     volumes:
-      - pichaus-storage:/app/storage
+      - gooncave-storage:/app/storage
       - ./backups:/backups
     depends_on:
       - db

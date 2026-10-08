@@ -348,7 +348,7 @@ const dialog = useDialog()
 import { debounce } from 'lodash-es'
 import { getAuthToken, setAuthToken } from '~/utils/auth-client'
 
-const IMPERSONATE_RETURN_KEY = 'pichaus_impersonate_return_token'
+const IMPERSONATE_RETURN_KEY = 'gooncave_impersonate_return_token'
 
 interface User {
     id: string

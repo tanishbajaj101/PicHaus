@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
     } else {
         await db.insert(siteSettings).values({
             id: 1,
-            siteName: (update.siteName as string) ?? 'PicHaus',
+            siteName: (update.siteName as string) ?? 'Gooncave',
             accentColor: (update.accentColor as string | null) ?? null,
             logoImageId: (update.logoImageId as string | null) ?? null,
             allowRegistration: (update.allowRegistration as boolean) ?? false,

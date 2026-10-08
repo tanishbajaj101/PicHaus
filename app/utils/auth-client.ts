@@ -1,4 +1,4 @@
-const AUTH_TOKEN_STORAGE_KEY = 'pichaus_access_token'
+const AUTH_TOKEN_STORAGE_KEY = 'gooncave_access_token'
 
 export function getAuthToken(): string | null {
     if (!process.client) {

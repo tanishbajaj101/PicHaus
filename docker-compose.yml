@@ -1,5 +1,5 @@
 services:
-  pichaus:
+  gooncave:
     build: .
     env_file: .env
     ports:
@@ -8,16 +8,16 @@ services:
       - db
       - machine-learning
     volumes:
-      - pichaus-storage:/app/storage
+      - gooncave-storage:/app/storage
 
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: pichaus
-      POSTGRES_PASSWORD: pichaus
-      POSTGRES_DB: pichaus
+      POSTGRES_USER: gooncave
+      POSTGRES_PASSWORD: gooncave
+      POSTGRES_DB: gooncave
     volumes:
-      - pichaus-db:/var/lib/postgresql/data
+      - gooncave-db:/var/lib/postgresql/data
 
   # Face detection is optional. This service can be removed when
   # FACE_DETECTION_ENABLED=false in .env.
@@ -26,9 +26,9 @@ services:
     environment:
       MACHINE_LEARNING_CACHE_FOLDER: /cache
     volumes:
-      - pichaus-ml-cache:/cache
+      - gooncave-ml-cache:/cache
 
 volumes:
-  pichaus-storage:
-  pichaus-db:
-  pichaus-ml-cache:
+  gooncave-storage:
+  gooncave-db:
+  gooncave-ml-cache:

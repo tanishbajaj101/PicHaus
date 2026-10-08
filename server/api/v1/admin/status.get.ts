@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
     let migrations: { name: string; appliedAt: number }[] = []
     try {
         const rows = await db.execute(sql`
-            SELECT name, applied_at FROM __pichaus_migrations ORDER BY name ASC
+            SELECT name, applied_at FROM __gooncave_migrations ORDER BY name ASC
         `) as { name: string; applied_at: string | bigint }[]
         migrations = rows.map(r => ({
             name: r.name,

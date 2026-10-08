@@ -1,6 +1,6 @@
 <template>
     <div class="min-h-screen" style="background: var(--bg-page);">
-        <NavBar title="PicHaus" />
+        <NavBar title="Gooncave" />
 
         <div class="px-4 sm:px-6 lg:px-8 py-8 pb-32">
             <!-- Header -->

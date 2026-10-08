@@ -7,7 +7,7 @@
                     style="background: var(--accent-light);">
                     <Icon name="lucide:camera" class="w-8 h-8" style="color: var(--accent);" :stroke-width="1.5" />
                 </div>
-                <h1 class="text-2xl font-bold tracking-tight" style="color: var(--text-1);">PicHaus</h1>
+                <h1 class="text-2xl font-bold tracking-tight" style="color: var(--text-1);">Gooncave</h1>
                 <p class="mt-1 text-sm" style="color: var(--text-2);">Initial Setup</p>
             </div>
 
@@ -80,7 +80,7 @@
             </div>
 
             <p class="text-center text-xs mt-4" style="color: var(--text-3);">
-                This will create the first admin account for PicHaus
+                This will create the first admin account for Gooncave
             </p>
         </div>
     </div>

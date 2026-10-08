@@ -31,7 +31,7 @@ function getSessionSecret(): string {
 
     if (!secret) {
         if (process.env.NODE_ENV !== 'production') {
-            return 'picHaus-dev-session-secret-change-me-immediately'
+            return 'gooncave-dev-session-secret-change-me-immediately'
         }
         throw createError({ statusCode: 500, statusMessage: 'Server session secret is missing' })
     }

@@ -18,7 +18,7 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: 'PicHaus',
+      title: 'Gooncave',
       meta: [
         { name: 'theme-color', content: '#191b1a' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' }
@@ -47,7 +47,7 @@ export default defineNuxtConfig({
                   document.documentElement.classList.remove('dark');
                 }
                 let cachedAccent = null;
-                try { cachedAccent = localStorage.getItem('pichaus-accent'); } catch (e) {}
+                try { cachedAccent = localStorage.getItem('gooncave-accent'); } catch (e) {}
                 if (cachedAccent && /^#[0-9a-fA-F]{6}$/.test(cachedAccent)) {
                   const r = parseInt(cachedAccent.slice(1, 3), 16);
                   const g = parseInt(cachedAccent.slice(3, 5), 16);

@@ -92,8 +92,8 @@ const requestUrl = useRequestURL()
 const baseUrl = requestUrl.origin
 
 useSeoMeta({
-    title: 'API Docs | PicHaus',
-    description: 'External API docs for PicHaus',
+    title: 'API Docs | Gooncave',
+    description: 'External API docs for Gooncave',
 })
 
 type EndpointParam = {
@@ -197,7 +197,7 @@ const copied = ref(false)
 const copyAsMarkdown = async () => {
     const lines: string[] = []
 
-    lines.push('# PicHaus External API Documentation')
+    lines.push('# Gooncave External API Documentation')
     lines.push('')
     lines.push('Use your API token in the `Authorization` header. All endpoints return JSON with a `success` field.')
     lines.push('')

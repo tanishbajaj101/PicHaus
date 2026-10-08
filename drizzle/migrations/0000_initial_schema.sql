@@ -1,4 +1,4 @@
--- PicHaus initial schema
+-- Gooncave initial schema
 -- Uses IF NOT EXISTS throughout so this is safe to run on both
 -- fresh databases and databases that were previously managed by Prisma.
 

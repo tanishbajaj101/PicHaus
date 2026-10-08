@@ -2507,10 +2507,10 @@ const deleteSelected = async () => {
     }
 }
 useSeoMeta({
-    title: computed(() => album.value?.name ? `${album.value.name} | PicHaus` : 'PicHaus'),
+    title: computed(() => album.value?.name ? `${album.value.name} | Gooncave` : 'Gooncave'),
     ogTitle: computed(() => album.value?.name),
-    description: computed(() => album.value?.description || `View ${album.value?.name || 'album'} on PicHaus`),
-    ogDescription: computed(() => album.value?.description || `View ${album.value?.name || 'album'} on PicHaus`),
+    description: computed(() => album.value?.description || `View ${album.value?.name || 'album'} on Gooncave`),
+    ogDescription: computed(() => album.value?.description || `View ${album.value?.name || 'album'} on Gooncave`),
     ogImage: computed(() => album.value ? `/api/v1/album/${albumId}/og-image` : null),
     twitterCard: 'summary_large_image',
     twitterImage: computed(() => album.value ? `/api/v1/album/${albumId}/og-image` : null),

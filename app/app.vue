@@ -36,7 +36,7 @@
 import { setAuthToken } from '~/utils/auth-client'
 import { getThemePreference, syncThemeToClass } from '~/utils/theme'
 
-const IMPERSONATE_RETURN_KEY = 'pichaus_impersonate_return_token'
+const IMPERSONATE_RETURN_KEY = 'gooncave_impersonate_return_token'
 
 const route = useRoute()
 const { splash } = useSplash()
@@ -66,7 +66,7 @@ useHead({
         return routeToTitle[path] || ''
     },
     titleTemplate: (titleChunk) => {
-        const siteName = settings.value?.siteName || 'PicHaus'
+        const siteName = settings.value?.siteName || 'Gooncave'
         if (!titleChunk) {
             return siteName
         }

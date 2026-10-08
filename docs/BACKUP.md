@@ -1,6 +1,6 @@
 # Backup and Restore
 
-PicHaus ships with guided command-line tools for backing up and restoring a full instance. This runbook covers migrating an instance to a new machine, with Docker deployments first and a bare-metal path after.
+Gooncave ships with guided command-line tools for backing up and restoring a full instance. This runbook covers migrating an instance to a new machine, with Docker deployments first and a bare-metal path after.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ PicHaus ships with guided command-line tools for backing up and restoring a full
 
 ## What a Backup Contains
 
-A backup is a single `.tar.gz` archive, or `.tar.gz.gpg` when encrypted, named `pichaus-backup-YYYYMMDD-HHmmss`. Inside the archive:
+A backup is a single `.tar.gz` archive, or `.tar.gz.gpg` when encrypted, named `gooncave-backup-YYYYMMDD-HHmmss`. Inside the archive:
 
 | File | Description |
 |---|---|
@@ -56,7 +56,7 @@ For example, use `pg_dump`/`pg_restore` from PostgreSQL 16 or newer to back up a
 
 The image's `postgresql-client-18` can dump and restore any server up to PostgreSQL 18, including the compose default `postgres:16-alpine` and newer 17/18 servers.
 
-The backup wizard reads `DATABASE_URL` and `STORAGE_DIR` from `.env` in the PicHaus repo (falling back to environment variables). A checkout of the repo is required, and the tool verifies the database connection and storage directory before starting.
+The backup wizard reads `DATABASE_URL` and `STORAGE_DIR` from `.env` in the Gooncave repo (falling back to environment variables). A checkout of the repo is required, and the tool verifies the database connection and storage directory before starting.
 
 ---
 
@@ -74,7 +74,7 @@ docker compose \
   --profile backup run --rm backup
 ```
 
-The `backup` service mounts `.env` and the `pichaus-storage` volume read-only, dumps the database through the `db` service, and runs with `--yes --output /backups --no-env` by default, so the archive contains `dump.pg` and `storage.tar` but no secrets. Pass extra arguments after `backup` to override that command; for example, to encrypt with a passphrase file placed under `./backups` (mounted at `/backups`):
+The `backup` service mounts `.env` and the `gooncave-storage` volume read-only, dumps the database through the `db` service, and runs with `--yes --output /backups --no-env` by default, so the archive contains `dump.pg` and `storage.tar` but no secrets. Pass extra arguments after `backup` to override that command; for example, to encrypt with a passphrase file placed under `./backups` (mounted at `/backups`):
 
 ```bash
 docker compose \
@@ -95,11 +95,11 @@ docker compose \
 
 ### Host runner (alternative)
 
-1. On the Docker host, check out PicHaus and install dependencies:
+1. On the Docker host, check out Gooncave and install dependencies:
 
 ```bash
-git clone https://github.com/ChokunPlayZ/PicHaus.git
-cd PicHaus
+git clone https://github.com/ChokunPlayZ/Gooncave.git
+cd Gooncave
 bun install
 ```
 
@@ -115,8 +115,8 @@ services:
 Then restart the database container (`docker compose up -d db`) and export the target, or set it in the checkout's `.env`:
 
 ```bash
-export DATABASE_URL="postgresql://pichaus:pichaus@127.0.0.1:5432/pichaus"
-export STORAGE_DIR="/srv/pichaus-backups/staging"
+export DATABASE_URL="postgresql://gooncave:gooncave@127.0.0.1:5432/gooncave"
+export STORAGE_DIR="/srv/gooncave-backups/staging"
 ```
 
 The wizard defaults to these values, and cron jobs need them exported the same way.
@@ -124,10 +124,10 @@ The wizard defaults to these values, and cron jobs need them exported the same w
 3. Make the uploads volume readable as a directory. The simplest reliable option is to copy the volume into a staging directory with a throwaway container:
 
 ```bash
-mkdir -p /srv/pichaus-backups/staging
+mkdir -p /srv/gooncave-backups/staging
 docker run --rm \
-  -v pichaus-storage:/data:ro \
-  -v /srv/pichaus-backups/staging:/staging \
+  -v gooncave-storage:/data:ro \
+  -v /srv/gooncave-backups/staging:/staging \
   alpine sh -c 'cp -a /data/. /staging/'
 ```
 
@@ -136,42 +136,42 @@ docker run --rm \
 4. Run the guided wizard:
 
 ```bash
-cd /srv/PicHaus
+cd /srv/Gooncave
 bun run backup
 ```
 
 ```text
-PicHaus backup
+Gooncave backup
 Creates a self-contained archive of the database, uploaded files, and optionally .env.
 
 [1/6] Checking environment...
-  Repo root:     /srv/PicHaus
-  Database:      postgresql://pichaus:****@127.0.0.1:5432/pichaus
-  Storage:       /srv/pichaus-backups/staging
+  Repo root:     /srv/Gooncave
+  Database:      postgresql://gooncave:****@127.0.0.1:5432/gooncave
+  Storage:       /srv/gooncave-backups/staging
   Storage driver: local
   PostgreSQL:    16.8
 
 [2/6] Gathering backup options...
-  Output directory for the backup archive [./backups]: /srv/pichaus-backups
+  Output directory for the backup archive [./backups]: /srv/gooncave-backups
   Database connection string [postgresql://...]: 
-  Storage directory [/srv/pichaus-backups/staging]: 
+  Storage directory [/srv/gooncave-backups/staging]: 
   Note: .env contains secrets such as DATABASE_URL and AUTH_SECRET.
   Include .env in the backup? [Y/n]: n
   Encrypt the final archive with a passphrase (gpg symmetric AES256)? [y/N]: n
   Start backup with the settings above? [Y/n]: y
 
 [3/6] Executing backup...
-  Dumping PostgreSQL database and copying /srv/pichaus-backups/staging...
+  Dumping PostgreSQL database and copying /srv/gooncave-backups/staging...
 
 [4/6] Packaging archive...
-  Archive: /srv/pichaus-backups/pichaus-backup-20260814-021700.tar.gz
+  Archive: /srv/gooncave-backups/gooncave-backup-20260814-021700.tar.gz
 
 [5/6] Finalizing archive...
   Verified 4 files in the archive.
 
 [6/6] Done
 
-Backup created: /srv/pichaus-backups/pichaus-backup-20260814-021700.tar.gz
+Backup created: /srv/gooncave-backups/gooncave-backup-20260814-021700.tar.gz
 Size: 1.2 GB (1284500000 bytes)
 SHA-256: 4e11f9c8cafc...
 Contents: dump.pg, storage.tar, manifest.json
@@ -186,16 +186,16 @@ Restore hint: bun run tools/restore.ts <archive>
 ```bash
 bun run tools/backup.ts \
   --yes \
-  --output /srv/pichaus-backups \
+  --output /srv/gooncave-backups \
   --no-env
 ```
 
 ```bash
 bun run tools/backup.ts \
   --yes \
-  --output /srv/pichaus-backups \
+  --output /srv/gooncave-backups \
   --encrypt \
-  --passphrase-file /srv/pichaus-backups/.passphrase \
+  --passphrase-file /srv/gooncave-backups/.passphrase \
   --no-env
 ```
 
@@ -218,7 +218,7 @@ bun run tools/backup.ts \
 The image runs the tools with plain Node (Node 24 TypeScript type stripping), so `node /app/tools/...` is the in-container entrypoint; Bun is not installed. The compose profile above is the supported way to run them with the correct mounts, but ad hoc help or validation runs work without any mounts:
 
 ```bash
-docker run --rm --entrypoint node pichaus-backup:local \
+docker run --rm --entrypoint node gooncave-backup:local \
   /app/tools/backup.ts --help
 ```
 
@@ -232,11 +232,11 @@ Restore on a fresh machine into a stack with an **empty** database and **empty**
 
 ### Compose profile (recommended)
 
-1. On the fresh machine, clone PicHaus, provide `.env`, and start the stack. The database and storage volumes start empty:
+1. On the fresh machine, clone Gooncave, provide `.env`, and start the stack. The database and storage volumes start empty:
 
 ```bash
-git clone https://github.com/ChokunPlayZ/PicHaus.git
-cd PicHaus
+git clone https://github.com/ChokunPlayZ/Gooncave.git
+cd Gooncave
 # copy or create .env (DATABASE_URL, STORAGE_DRIVER, ...)
 docker compose up -d
 ```
@@ -254,14 +254,14 @@ docker compose up -d
 docker compose \
   -f docker-compose.yml -f docker-compose.backup.yml \
   --profile backup run --rm restore \
-  /backups/pichaus-backup-20260814-021700.tar.gz \
+  /backups/gooncave-backup-20260814-021700.tar.gz \
   --yes \
-  --db-url "postgresql://pichaus:pichaus@db:5432/pichaus" \
+  --db-url "postgresql://gooncave:gooncave@db:5432/gooncave" \
   --storage-dir /app/storage \
   --no-env
 ```
 
-The `restore` service mounts the `pichaus-storage` volume writable and writes `storage.tar` back into it, so no host staging copy is needed. `--no-env` skips `.env` writes; the restore service does not mount the host `.env`. Add `--passphrase-file /backups/passphrase.txt` for an encrypted archive. `--yes` requires the target database and storage to be empty; add `--overwrite` when re-testing against data that may remain.
+The `restore` service mounts the `gooncave-storage` volume writable and writes `storage.tar` back into it, so no host staging copy is needed. `--no-env` skips `.env` writes; the restore service does not mount the host `.env`. Add `--passphrase-file /backups/passphrase.txt` for an encrypted archive. `--yes` requires the target database and storage to be empty; add `--overwrite` when re-testing against data that may remain.
 
 For usage help:
 
@@ -280,12 +280,12 @@ docker compose \
 Install [Bun](https://bun.sh), the PostgreSQL client tools, and the `docker` CLI on the host, then clone the repository:
 
 ```bash
-git clone https://github.com/ChokunPlayZ/PicHaus.git
-cd PicHaus
+git clone https://github.com/ChokunPlayZ/Gooncave.git
+cd Gooncave
 bun install
 ```
 
-Check `appVersion` and `gitSha` in the archive's `manifest.json` (`tar -xzf <archive> manifest.json`) and use the same or a newer version of PicHaus. Newer versions are safe because migrations run automatically on startup; older versions may not understand a newer dump.
+Check `appVersion` and `gitSha` in the archive's `manifest.json` (`tar -xzf <archive> manifest.json`) and use the same or a newer version of Gooncave. Newer versions are safe because migrations run automatically on startup; older versions may not understand a newer dump.
 
 #### 2. Start the stack with empty data
 
@@ -303,15 +303,15 @@ Add the same `127.0.0.1:5432:5432` port mapping for `db` described in the backup
 The restore tool takes the archive path as its first argument:
 
 ```bash
-bun run tools/restore.ts /srv/pichaus-backups/pichaus-backup-20260814-021700.tar.gz
+bun run tools/restore.ts /srv/gooncave-backups/gooncave-backup-20260814-021700.tar.gz
 ```
 
 ```text
-PicHaus restore
-Restores a database, storage directory, and optional .env from a PicHaus backup archive.
+Gooncave restore
+Restores a database, storage directory, and optional .env from a Gooncave backup archive.
 
 [1/8] Preflight...
-  Archive:    /srv/pichaus-backups/pichaus-backup-20260814-021700.tar.gz
+  Archive:    /srv/gooncave-backups/gooncave-backup-20260814-021700.tar.gz
   pg_restore: /usr/bin/pg_restore
   psql:       /usr/bin/psql
   tar:        /usr/bin/tar
@@ -333,27 +333,27 @@ Restores a database, storage directory, and optional .env from a PicHaus backup 
 
 [5/8] Configuring restore target...
   Target DATABASE_URL [postgresql://...]:
-  Target storage directory [/srv/PicHaus/storage/uploads]:
+  Target storage directory [/srv/Gooncave/storage/uploads]:
   Restore into a Docker named volume? [y/N]: y
   Detected Docker volumes:
-    1) pichaus-storage
-    2) pichaus-ml-cache
-  Docker volume name [pichaus-storage]:
+    1) gooncave-storage
+    2) gooncave-ml-cache
+  Docker volume name [gooncave-storage]:
   Write a fresh .env from env.backup, patching DATABASE_URL? [Y/n]: n
 
 Restore plan:
-  Database:   postgresql://pichaus:****@127.0.0.1:5432/pichaus
-  Storage:    Docker volume pichaus-storage
+  Database:   postgresql://gooncave:****@127.0.0.1:5432/gooncave
+  Storage:    Docker volume gooncave-storage
   Write .env: no
 
 [6/8] Safety checks and final confirmation...
-  Target database ... has no existing PicHaus tables.
-  Target storage Docker volume pichaus-storage is empty or new.
+  Target database ... has no existing Gooncave tables.
+  Target storage Docker volume gooncave-storage is empty or new.
   Proceed with restore? [Y/n]: y
 
 [7/8] Executing restore...
   Restoring PostgreSQL dump with pg_restore --clean...
-  Restoring storage into Docker volume pichaus-storage...
+  Restoring storage into Docker volume gooncave-storage...
 
 [8/8] Running health checks...
   PASS users row count: 3
@@ -364,8 +364,8 @@ Restore plan:
   PASS sample photo files on disk: 3/3
 
 Restore complete.
-  Database: postgresql://pichaus:****@127.0.0.1:5432/pichaus
-  Storage:  Docker volume pichaus-storage
+  Database: postgresql://gooncave:****@127.0.0.1:5432/gooncave
+  Storage:  Docker volume gooncave-storage
   .env:     not written
 ```
 
@@ -374,10 +374,10 @@ Encrypted archives prompt for the decryption passphrase before extraction. If th
 For cron or scripting, the same restore can run non-interactively:
 
 ```bash
-bun run tools/restore.ts /srv/pichaus-backups/pichaus-backup-20260814-021700.tar.gz \
+bun run tools/restore.ts /srv/gooncave-backups/gooncave-backup-20260814-021700.tar.gz \
   --yes \
-  --db-url "postgresql://pichaus:pichaus@127.0.0.1:5432/pichaus" \
-  --docker-volume pichaus-storage \
+  --db-url "postgresql://gooncave:gooncave@127.0.0.1:5432/gooncave" \
+  --docker-volume gooncave-storage \
   --no-env
 ```
 
@@ -395,7 +395,7 @@ Add `--passphrase-file /path/to/passphrase` for an encrypted archive.
 | `--dry-run` | Decrypt, extract, verify, and show the plan, then stop without changes |
 | `--help` | Show usage and exit |
 
-The wizard checks the target database and storage before touching anything. If the database already contains PicHaus tables or the target storage is not empty, it requires you to type `OVERWRITE` before proceeding. In `--yes` mode that gate fails unless `--overwrite` is also passed.
+The wizard checks the target database and storage before touching anything. If the database already contains Gooncave tables or the target storage is not empty, it requires you to type `OVERWRITE` before proceeding. In `--yes` mode that gate fails unless `--overwrite` is also passed.
 
 The image ships the same tool, so the compose profile at the top of this section is the supported container variant; it runs `node /app/tools/restore.ts` with the storage volume already mounted at `/app/storage`.
 
@@ -404,7 +404,7 @@ The image ships the same tool, so the compose profile at the top of this section
 Restart the stack after the restore:
 
 ```bash
-docker compose restart pichaus
+docker compose restart gooncave
 ```
 
 Then verify:
@@ -435,34 +435,34 @@ The same tools work without Docker.
 ### Backup
 
 ```bash
-cd /path/to/PicHaus
+cd /path/to/Gooncave
 bun run backup
 ```
 
 The wizard defaults come from `.env` (`DATABASE_URL`, `STORAGE_DIR`). Non-interactive:
 
 ```bash
-bun run tools/backup.ts --yes --output /srv/pichaus-backups --no-env
+bun run tools/backup.ts --yes --output /srv/gooncave-backups --no-env
 ```
 
 ### Restore
 
-1. Install Bun and the PostgreSQL client tools, clone PicHaus, and `bun install`
-2. Create an empty database: `createdb pichaus`
+1. Install Bun and the PostgreSQL client tools, clone Gooncave, and `bun install`
+2. Create an empty database: `createdb gooncave`
 3. Run the restore wizard with the archive path; use `--storage-dir` if storage lives somewhere other than the repo default
 4. Start the app and verify login and photo loading
 
 ```bash
-bun run tools/restore.ts /srv/pichaus-backups/pichaus-backup-20260814-021700.tar.gz
+bun run tools/restore.ts /srv/gooncave-backups/gooncave-backup-20260814-021700.tar.gz
 ```
 
 Non-interactive:
 
 ```bash
-bun run tools/restore.ts /srv/pichaus-backups/pichaus-backup-20260814-021700.tar.gz \
+bun run tools/restore.ts /srv/gooncave-backups/gooncave-backup-20260814-021700.tar.gz \
   --yes \
-  --db-url "postgresql://pichaus:secret@localhost:5432/pichaus" \
-  --storage-dir /srv/pichaus/storage/uploads \
+  --db-url "postgresql://gooncave:secret@localhost:5432/gooncave" \
+  --storage-dir /srv/gooncave/storage/uploads \
   --no-env
 ```
 
@@ -476,7 +476,7 @@ The backup command is fully non-interactive, so it fits in cron. Set `DATABASE_U
 
 ```cron
 # 2:17 AM daily; archives are timestamped, keep the last N yourself
-17 2 * * * cd /srv/PicHaus && DATABASE_URL="postgresql://pichaus:pichaus@127.0.0.1:5432/pichaus" STORAGE_DIR="/srv/pichaus-backups/staging" bun run tools/backup.ts --yes --output /srv/pichaus-backups --no-env
+17 2 * * * cd /srv/Gooncave && DATABASE_URL="postgresql://gooncave:gooncave@127.0.0.1:5432/gooncave" STORAGE_DIR="/srv/gooncave-backups/staging" bun run tools/backup.ts --yes --output /srv/gooncave-backups --no-env
 ```
 
 Guidelines:
@@ -494,7 +494,7 @@ Guidelines:
 | `pg_dump was not found on PATH` | PostgreSQL client tools are missing on the run host | `brew install libpq` (macOS) or `apt install postgresql-client` (Debian/Ubuntu); make the libpq `bin` directory visible to the tool |
 | `pg_restore and psql were not found on PATH` | PostgreSQL client tools are missing on the restore host | Install the client tools as above; restore uses `pg_restore`, `psql`, and `tar` |
 | `pg_dump: server version mismatch` | `pg_dump` is older than the server | Upgrade `pg_dump` so its major version is >= the server's major version |
-| `No .env file found at ...` | The tool must be run from a PicHaus checkout | Run from the repo root, or point the tool at a checkout that contains `.env` |
+| `No .env file found at ...` | The tool must be run from a Gooncave checkout | Run from the repo root, or point the tool at a checkout that contains `.env` |
 | `Only the "local" storage driver is supported` | `STORAGE_DRIVER=s3` is set | Back up from a host with the local files (or restore the bucket separately); S3 backups are not supported yet |
 | `gpg was not found on PATH` | GPG is missing but the archive is encrypted | Install GnuPG on the restore host, or use an unencrypted archive |
 | Wrong passphrase / decryption failed | Passphrase does not match the one used during backup | Re-run with the correct passphrase; verify the passphrase file is the one used by `--encrypt`; interactive mode allows three attempts |

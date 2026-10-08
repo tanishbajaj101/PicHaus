@@ -174,7 +174,7 @@ export const inviteTokens = pgTable('invite_tokens', {
 
 export const siteSettings = pgTable('site_settings', {
     id: integer('id').primaryKey().default(1),
-    siteName: text('siteName').default('PicHaus').notNull(),
+    siteName: text('siteName').default('Gooncave').notNull(),
     accentColor: text('accentColor'),
     logoImageId: uuid('logoImageId').references(() => logos.id, { onDelete: 'set null' }),
     allowRegistration: boolean('allowRegistration').default(false).notNull(),

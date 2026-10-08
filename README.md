@@ -1,4 +1,4 @@
-# PicHaus
+# Gooncave
 
 A self-hosted, collaborative photo album platform built for photography clubs. Photographers upload via a share link — no account required. Owners manage albums, cover photos, share links, and API access from a clean web UI.
 
@@ -51,7 +51,7 @@ A self-hosted, collaborative photo album platform built for photography clubs. P
 - **Statistics dashboard** — top cameras, lenses, aperture/ISO/shutter distributions, monthly activity timeline
 - **Username + password accounts** (this fork) — no email is ever collected; accounts are username and password only
 - **Passkeys & security keys** — passwordless login via WebAuthn/FIDO2 (Face ID, Touch ID, Windows Hello, YubiKey, etc.)
-- **External API** — scoped API tokens for integrating PicHaus with external sites or workflows
+- **External API** — scoped API tokens for integrating Gooncave with external sites or workflows
 - **Fully self-hosted** — Docker image, PostgreSQL, local file storage
 
 ---
@@ -82,8 +82,8 @@ A self-hosted, collaborative photo album platform built for photography clubs. P
 
 ```bash
 # Clone and install
-git clone https://github.com/ChokunPlayZ/PicHaus.git
-cd PicHaus
+git clone https://github.com/ChokunPlayZ/Gooncave.git
+cd Gooncave
 bun install
 
 # Configure environment
@@ -101,16 +101,16 @@ The app runs at `http://localhost:3000`. Database migrations run automatically o
 ## Docker Deployment
 
 ```bash
-docker build -t pichaus .
+docker build -t gooncave .
 
 docker run -d \
-  --name pichaus \
+  --name gooncave \
   -p 3000:3000 \
-  -e DATABASE_URL="postgresql://user:pass@host:5432/pichaus" \
+  -e DATABASE_URL="postgresql://user:pass@host:5432/gooncave" \
   -e AUTH_SECRET="your-random-32-char-secret-here" \
   -e STORAGE_DIR="/data/uploads" \
-  -v pichaus-storage:/data/uploads \
-  pichaus
+  -v gooncave-storage:/data/uploads \
+  gooncave
 ```
 
 > **Note**: `DATABASE_URL` is only needed at runtime — the build step has no database dependency.
@@ -119,12 +119,12 @@ docker run -d \
 
 ```yaml
 services:
-  pichaus:
-    image: pichaus
+  gooncave:
+    image: gooncave
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://pichaus:secret@db:5432/pichaus
+      DATABASE_URL: postgresql://gooncave:secret@db:5432/gooncave
       AUTH_SECRET: replace-with-32-plus-char-random-string
       STORAGE_DIR: /data/uploads
       MAX_FILE_SIZE_MB: "20"
@@ -136,8 +136,8 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: pichaus
-      POSTGRES_USER: pichaus
+      POSTGRES_DB: gooncave
+      POSTGRES_USER: gooncave
       POSTGRES_PASSWORD: secret
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -157,7 +157,7 @@ volumes:
 | `AUTH_SECRET` | Yes (prod) | dev fallback | HMAC secret for session tokens — minimum 32 characters |
 | `STORAGE_DRIVER` | No | `local` | Storage backend: `local` or `s3` |
 | `STORAGE_DIR` | No | `storage/uploads` | Absolute or relative path where uploaded files are stored |
-| `ASSET_DELIVERY` | No | `proxy` | Asset delivery mode: `proxy` streams through PicHaus; `redirect` sends clients to S3 after access checks |
+| `ASSET_DELIVERY` | No | `proxy` | Asset delivery mode: `proxy` streams through Gooncave; `redirect` sends clients to S3 after access checks |
 | `S3_BUCKET` | When `STORAGE_DRIVER=s3` | — | S3-compatible bucket name |
 | `S3_REGION` | When `STORAGE_DRIVER=s3` | `us-east-1` | S3 signing region |
 | `S3_ENDPOINT` | No | AWS S3 endpoint | Custom S3-compatible endpoint, e.g. MinIO or R2 |
@@ -177,7 +177,7 @@ volumes:
 | `AUTO_COMPRESS_QUALITY` | No | `88` | Compression quality for JPEGs/PNGs (1 to 100) |
 | `NODE_ENV` | No | `development` | Set to `production` in production deployments |
 | `WEBAUTHN_RP_ID` | No | `localhost` | Passkey relying-party ID — must match the domain users visit (no port, no protocol) |
-| `WEBAUTHN_RP_NAME` | No | `PicHaus` | Human-readable relying-party name shown by the browser during passkey registration |
+| `WEBAUTHN_RP_NAME` | No | `Gooncave` | Human-readable relying-party name shown by the browser during passkey registration |
 | `WEBAUTHN_ORIGIN` | No | `http://localhost:3000` | Exact origin in the browser address bar — must include protocol and port if non-standard |
 | `COMMUNITY_MODE` | No | `true` | This fork only. Set to `false` to restore upstream owner/collaborator-only behaviour. See [Community mode](#community-mode-this-fork). |
 
@@ -188,7 +188,7 @@ volumes:
 > **No email, ever (this fork)**: accounts are username and password only. Google and Microsoft OAuth sign-in were removed along with the `email` column they depended on — there is no code path anywhere that asks a user, admin, or share-link guest for an email address.
 
 > **Auto-Compression and Resizing**:
-> PicHaus automatically compresses and resizes uploaded photos to keep storage footprint and load times low, while preserving EXIF metadata on the saved files:
+> Gooncave automatically compresses and resizes uploaded photos to keep storage footprint and load times low, while preserving EXIF metadata on the saved files:
 > - **Resizing**: Resizes files exceeding `AUTO_COMPRESS_MAX_DIMENSION` (default: `4000`px on the longest edge) using standard quality parameters (`AUTO_COMPRESS_QUALITY` default: `88`).
 > - **Always-Compress Threshold**: Any uploaded image exceeding `AUTO_COMPRESS_LIMIT_MB` (default: `15`MB) is always compressed.
 > - **Size-to-Resolution Ratio**: If a JPEG is larger than necessary for its actual resolution (Megapixels), it gets compressed. By default, if the ratio of file size (in MB) to image resolution (in Megapixels) exceeds `AUTO_COMPRESS_RATIO_MB_PER_MP` (default: `0.5` MB/MP), it is compressed. For example, a 12MP photo that is 9MB has a ratio of 0.75, which triggers compression.
@@ -369,7 +369,7 @@ This is designed for photography club events: the club owner creates an **upload
 6. An overall progress bar tracks the batch; a summary (N uploaded · N duplicates skipped · N failed) appears on completion
 7. Click **Add more** to queue additional files, **Clear all** to reset, or **Upload More Photos** to start a new batch
 
-Uploads use resumable chunks. If the browser reconnects while the same file hash is still staged on the server, PicHaus resumes from the next expected byte instead of starting from zero. Chunk sessions are stored under `STORAGE_DIR/resumable` and are promoted to the configured storage backend after the final chunk is received.
+Uploads use resumable chunks. If the browser reconnects while the same file hash is still staged on the server, Gooncave resumes from the next expected byte instead of starting from zero. Chunk sessions are stored under `STORAGE_DIR/resumable` and are promoted to the configured storage backend after the final chunk is received.
 
 **Account behaviour**
 
@@ -456,7 +456,7 @@ Invite links are opened at `/invite/<token>`.
 
 ## Branding
 
-PicHaus branding is layered:
+Gooncave branding is layered:
 
 - **Site settings** control the global site name, accent color, and navbar/logo shown across the app.
 - **Album settings** control the logo text/image and theme for that album's private page, public share page, and upload page.
@@ -686,20 +686,20 @@ For use in `<img>` tags, append `?access_token=<token>` since browsers cannot se
 
 ## Authentication
 
-PicHaus uses a custom HMAC-SHA256 token scheme rather than a JWT library.
+Gooncave uses a custom HMAC-SHA256 token scheme rather than a JWT library.
 
 **Format**: `base64url(payload) . HMAC-SHA256(payload, AUTH_SECRET)`
 
 **Session tokens**
 
 - Created on login (password, passkey, or guest upload flow), valid for 7 days
-- Stored in `localStorage` under the key `pichaus_access_token`
+- Stored in `localStorage` under the key `gooncave_access_token`
 - Sent as `Authorization: Bearer <token>` on every API call
 - For image asset URLs, appended as `?access_token=<token>`
 
 **Passkeys and security keys**
 
-PicHaus supports WebAuthn/FIDO2 passkeys and hardware security keys (YubiKey, etc.) as a passwordless login method via [@simplewebauthn](https://simplewebauthn.dev).
+Gooncave supports WebAuthn/FIDO2 passkeys and hardware security keys (YubiKey, etc.) as a passwordless login method via [@simplewebauthn](https://simplewebauthn.dev).
 
 - **Sign in** — the login page has a **Sign in with Passkey** button. The browser or OS prompts the user to select a registered credential. No email or password is entered.
 - **Register a passkey** — go to **Settings** → **Passkeys & Security Keys** → click **Add**. The browser prompts to create a new credential using the platform authenticator (Face ID, Touch ID, Windows Hello) or a plugged-in hardware key. Multiple passkeys can be registered per account.
@@ -725,9 +725,9 @@ All passwords (user accounts and share link passwords) are hashed with Argon2id:
 
 ## Storage
 
-Files are stored through the configured storage backend. By default PicHaus uses the local filesystem at `STORAGE_DIR` (default `storage/uploads`). Set `STORAGE_DRIVER=s3` to store photos, thumbnails, logos, and avatars in an S3-compatible bucket.
+Files are stored through the configured storage backend. By default Gooncave uses the local filesystem at `STORAGE_DIR` (default `storage/uploads`). Set `STORAGE_DRIVER=s3` to store photos, thumbnails, logos, and avatars in an S3-compatible bucket.
 
-Asset delivery defaults to `ASSET_DELIVERY=proxy`, where browsers request PicHaus asset endpoints and PicHaus streams bytes from storage after enforcing auth/share-link checks. With `ASSET_DELIVERY=redirect`, PicHaus still performs the same access checks, then returns a 302 to the bucket or CDN so the browser downloads the file directly.
+Asset delivery defaults to `ASSET_DELIVERY=proxy`, where browsers request Gooncave asset endpoints and Gooncave streams bytes from storage after enforcing auth/share-link checks. With `ASSET_DELIVERY=redirect`, Gooncave still performs the same access checks, then returns a 302 to the bucket or CDN so the browser downloads the file directly.
 
 **Storage backend choices**
 
@@ -740,9 +740,9 @@ Asset delivery defaults to `ASSET_DELIVERY=proxy`, where browsers request PicHau
 
 | Delivery mode | Configuration | Browser receives | Bucket visibility | Tradeoff |
 |---|---|---|---|---|
-| Proxy | `ASSET_DELIVERY=proxy` | PicHaus `/api/assets/...` response body | Private | Strongest control and simplest setup, but PicHaus pays bandwidth and handles streaming |
-| Redirect with presigned URLs | `ASSET_DELIVERY=redirect`, no `S3_PUBLIC_BASE_URL` | Short-lived signed bucket URL | Private | Saves PicHaus bandwidth while preserving private objects; URLs remain valid until TTL expiry |
-| Redirect to CDN/public base | `ASSET_DELIVERY=redirect` and `S3_PUBLIC_BASE_URL=...` | Public bucket/CDN URL | Public or CDN-authorized | Lowest PicHaus bandwidth and best CDN caching, but object access is controlled outside PicHaus after redirect |
+| Proxy | `ASSET_DELIVERY=proxy` | Gooncave `/api/assets/...` response body | Private | Strongest control and simplest setup, but Gooncave pays bandwidth and handles streaming |
+| Redirect with presigned URLs | `ASSET_DELIVERY=redirect`, no `S3_PUBLIC_BASE_URL` | Short-lived signed bucket URL | Private | Saves Gooncave bandwidth while preserving private objects; URLs remain valid until TTL expiry |
+| Redirect to CDN/public base | `ASSET_DELIVERY=redirect` and `S3_PUBLIC_BASE_URL=...` | Public bucket/CDN URL | Public or CDN-authorized | Lowest Gooncave bandwidth and best CDN caching, but object access is controlled outside Gooncave after redirect |
 
 **Local directory layout**
 
@@ -775,11 +775,11 @@ Cover photos are processed to JPEG at up to 2560×2560 and stored alongside regu
 
 **S3-compatible storage**
 
-Set the bucket credentials and switch the driver. PicHaus signs S3 requests itself using SigV4, so no AWS SDK dependency is required.
+Set the bucket credentials and switch the driver. Gooncave signs S3 requests itself using SigV4, so no AWS SDK dependency is required.
 
 ```env
 STORAGE_DRIVER="s3"
-S3_BUCKET="pichaus"
+S3_BUCKET="gooncave"
 S3_REGION="us-east-1"
 S3_ENDPOINT="https://s3.example.com"
 S3_ACCESS_KEY_ID="..."
@@ -787,7 +787,7 @@ S3_SECRET_ACCESS_KEY="..."
 S3_PREFIX="production"
 ```
 
-Stored object keys keep the same internal layout (`photos/...`, `thumbnails/...`, `logos/...`, `avatars/...`), optionally under `S3_PREFIX`. Existing local files are not migrated automatically. Resumable-upload chunks are still staged on the PicHaus server under `STORAGE_DIR/resumable` until each upload completes, then the final file is written to S3.
+Stored object keys keep the same internal layout (`photos/...`, `thumbnails/...`, `logos/...`, `avatars/...`), optionally under `S3_PREFIX`. Existing local files are not migrated automatically. Resumable-upload chunks are still staged on the Gooncave server under `STORAGE_DIR/resumable` until each upload completes, then the final file is written to S3.
 
 The access key must be able to:
 
@@ -803,37 +803,37 @@ ASSET_DELIVERY="redirect"
 S3_PRESIGNED_URL_TTL_SECONDS="300"
 ```
 
-The browser first requests `/api/assets/...`; PicHaus validates album ownership, collaborator access, API-token/share-link cookies, and public-album rules. Only after that check does PicHaus return a 302 to a presigned URL. The default TTL is 300 seconds and is clamped between 1 second and 7 days.
+The browser first requests `/api/assets/...`; Gooncave validates album ownership, collaborator access, API-token/share-link cookies, and public-album rules. Only after that check does Gooncave return a 302 to a presigned URL. The default TTL is 300 seconds and is clamped between 1 second and 7 days.
 
 If objects are intentionally public behind a bucket website or CDN, set `S3_PUBLIC_BASE_URL` instead:
 
 ```env
 ASSET_DELIVERY="redirect"
-S3_PUBLIC_BASE_URL="https://cdn.example.com/pichaus/"
+S3_PUBLIC_BASE_URL="https://cdn.example.com/gooncave/"
 ```
 
-When `S3_PUBLIC_BASE_URL` is set, PicHaus maps internal object keys directly under that base URL. For example, with `S3_PREFIX=production` and `S3_PUBLIC_BASE_URL=https://cdn.example.com/pichaus/`, `photos/a.jpg` redirects to `https://cdn.example.com/pichaus/production/photos/a.jpg`.
+When `S3_PUBLIC_BASE_URL` is set, Gooncave maps internal object keys directly under that base URL. For example, with `S3_PREFIX=production` and `S3_PUBLIC_BASE_URL=https://cdn.example.com/gooncave/`, `photos/a.jpg` redirects to `https://cdn.example.com/gooncave/production/photos/a.jpg`.
 
 **AWS S3 example**
 
 ```env
 STORAGE_DRIVER="s3"
 ASSET_DELIVERY="proxy"
-S3_BUCKET="pichaus-prod"
+S3_BUCKET="gooncave-prod"
 S3_REGION="us-east-1"
 S3_ACCESS_KEY_ID="..."
 S3_SECRET_ACCESS_KEY="..."
 S3_PREFIX="uploads"
 ```
 
-For AWS S3, omit `S3_ENDPOINT`. PicHaus defaults to virtual-hosted-style URLs for AWS S3. Set `ASSET_DELIVERY=redirect` to use presigned browser downloads.
+For AWS S3, omit `S3_ENDPOINT`. Gooncave defaults to virtual-hosted-style URLs for AWS S3. Set `ASSET_DELIVERY=redirect` to use presigned browser downloads.
 
 **Cloudflare R2 example**
 
 ```env
 STORAGE_DRIVER="s3"
 ASSET_DELIVERY="redirect"
-S3_BUCKET="pichaus"
+S3_BUCKET="gooncave"
 S3_REGION="auto"
 S3_ENDPOINT="https://<account-id>.r2.cloudflarestorage.com"
 S3_ACCESS_KEY_ID="..."
@@ -849,7 +849,7 @@ R2 supports SigV4-style presigned URLs. Custom endpoints default to path-style U
 ```env
 STORAGE_DRIVER="s3"
 ASSET_DELIVERY="proxy"
-S3_BUCKET="pichaus"
+S3_BUCKET="gooncave"
 S3_REGION="us-east-1"
 S3_ENDPOINT="https://minio.example.com"
 S3_ACCESS_KEY_ID="..."
@@ -861,17 +861,17 @@ If you put MinIO behind a public reverse proxy or CDN and want direct reads, set
 
 **Operational notes**
 
-- Keep `ASSET_DELIVERY=proxy` if you need PicHaus to remain the only host clients contact for media.
-- Use `ASSET_DELIVERY=redirect` to reduce PicHaus egress and CPU load for image downloads.
-- Presigned redirects expose temporary object URLs to the user who passed PicHaus access checks. Use a short TTL if album membership or share-link access changes often.
-- Public/CDN redirects do not make PicHaus re-check access after the redirect; configure bucket/CDN policies accordingly.
+- Keep `ASSET_DELIVERY=proxy` if you need Gooncave to remain the only host clients contact for media.
+- Use `ASSET_DELIVERY=redirect` to reduce Gooncave egress and CPU load for image downloads.
+- Presigned redirects expose temporary object URLs to the user who passed Gooncave access checks. Use a short TTL if album membership or share-link access changes often.
+- Public/CDN redirects do not make Gooncave re-check access after the redirect; configure bucket/CDN policies accordingly.
 - Switching from local storage to S3 changes where new files are written. Copy existing `STORAGE_DIR` contents to matching S3 keys before switching a production instance.
 
 ---
 
 ## Database
 
-PicHaus uses PostgreSQL via [Drizzle ORM](https://orm.drizzle.team). All timestamps are stored as Unix seconds (`BigInt`).
+Gooncave uses PostgreSQL via [Drizzle ORM](https://orm.drizzle.team). All timestamps are stored as Unix seconds (`BigInt`).
 
 **Auto-migration on startup**
 
