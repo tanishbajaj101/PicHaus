@@ -14,14 +14,14 @@ export default defineEventHandler(async (event) => {
         const skip = (page - 1) * limit
 
         const where = search
-            ? or(ilike(users.name, `%${search}%`), ilike(users.email, `%${search}%`))
+            ? or(ilike(users.name, `%${search}%`), ilike(users.username, `%${search}%`))
             : undefined
 
         const [rows, countResult] = await Promise.all([
             db.select({
                 id: users.id,
                 name: users.name,
-                email: users.email,
+                username: users.username,
                 instagram: users.instagram,
                 role: users.role,
                 createdAt: users.createdAt,
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
             data: rows.map(u => ({
                 id: u.id,
                 name: u.name,
-                email: u.email,
+                username: u.username,
                 instagram: u.instagram,
                 role: u.role,
                 createdAt: Number(u.createdAt),

@@ -47,36 +47,6 @@
                 <h2 class="text-xl font-bold mb-1" style="color: var(--text-1);">{{ albumInfo.albumName }}</h2>
                 <p class="text-sm mb-6" style="color: var(--text-2);">Please identify yourself to contribute</p>
 
-                <!-- Google Sign-In -->
-                <div v-if="siteSettings.googleOAuthEnabled || siteSettings.microsoftOAuthEnabled" class="mb-5 space-y-2">
-                    <button v-if="siteSettings.googleOAuthEnabled" @click="handleGoogleLogin" :disabled="googleLoading"
-                        class="w-full flex items-center justify-center gap-2.5 py-2.5 text-sm font-medium rounded-full transition"
-                        style="background: var(--surface-2); color: var(--text-1); border: 1px solid var(--separator);"
-                        @mouseover="!googleLoading && (($event.currentTarget as HTMLElement).style.background = 'var(--surface-3)')"
-                        @mouseout="($event.currentTarget as HTMLElement).style.background = 'var(--surface-2)'">
-                        <span v-if="googleLoading" class="w-4 h-4 rounded-full border-2 animate-spin"
-                            style="border-color: var(--separator); border-top-color: var(--text-2);"></span>
-                        <Icon v-else name="logos:google-icon" class="w-4 h-4 flex-shrink-0" />
-                        <span>{{ googleLoading ? 'Redirecting…' : 'Sign in with Google' }}</span>
-                    </button>
-                    <button v-if="siteSettings.microsoftOAuthEnabled" @click="handleMicrosoftLogin" :disabled="microsoftLoading"
-                        class="w-full flex items-center justify-center gap-2.5 py-2.5 text-sm font-medium rounded-full transition"
-                        style="background: var(--surface-2); color: var(--text-1); border: 1px solid var(--separator);"
-                        @mouseover="!microsoftLoading && (($event.currentTarget as HTMLElement).style.background = 'var(--surface-3)')"
-                        @mouseout="($event.currentTarget as HTMLElement).style.background = 'var(--surface-2)'">
-                        <span v-if="microsoftLoading" class="w-4 h-4 rounded-full border-2 animate-spin"
-                            style="border-color: var(--separator); border-top-color: var(--text-2);"></span>
-                        <img v-else-if="siteSettings.microsoftButtonLogoUrl" :src="siteSettings.microsoftButtonLogoUrl" class="w-4 h-4 flex-shrink-0 object-contain" />
-                        <Icon v-else name="logos:microsoft-icon" class="w-4 h-4 flex-shrink-0" />
-                        <span>{{ microsoftLoading ? 'Redirecting…' : (siteSettings.microsoftButtonText || 'Sign in with Microsoft') }}</span>
-                    </button>
-                    <div class="flex items-center gap-3 my-4">
-                        <div class="flex-1 h-px" style="background: var(--separator);"></div>
-                        <span class="text-xs" style="color: var(--text-3);">or continue as guest</span>
-                        <div class="flex-1 h-px" style="background: var(--separator);"></div>
-                    </div>
-                </div>
-
                 <form @submit.prevent="handleGuestLogin" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Name <span style="color: var(--text-3);">(optional)</span></label>
@@ -86,16 +56,6 @@
                             placeholder="Your Name"
                             @focus="($event.target as HTMLElement).style.borderColor = 'var(--accent)'"
                             @blur="($event.target as HTMLElement).style.borderColor = 'var(--separator)'" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Email <span style="color: var(--text-3);">(optional)</span></label>
-                        <input v-model="guestForm.email" type="email"
-                            class="w-full px-3.5 py-2.5 text-sm rounded-xl transition"
-                            style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1); outline: none;"
-                            placeholder="your@email.com"
-                            @focus="($event.target as HTMLElement).style.borderColor = 'var(--accent)'"
-                            @blur="($event.target as HTMLElement).style.borderColor = 'var(--separator)'" />
-                        <p class="text-xs mt-1" style="color: var(--text-3);">Helps the admin follow up with you later</p>
                     </div>
                     <div v-if="albumInfo.requiresPassword">
                         <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Album Password</label>
@@ -342,11 +302,9 @@ const albumInfo = ref<any>(null)
 const isLoggedIn = ref(false)
 const user = ref<any>(null)
 
-const guestForm = ref({ name: '', email: '', password: '' })
+const guestForm = ref({ name: '', password: '' })
 const loggingIn = ref(false)
 const loginError = ref('')
-const googleLoading = ref(false)
-const microsoftLoading = ref(false)
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const queue = ref<QueueItem[]>([])
@@ -572,7 +530,7 @@ const handleGuestLogin = async () => {
     try {
         const response = await $fetch<{ success: boolean; data: any }>('/api/v1/auth/guest-login', {
             method: 'POST',
-            body: { token, name: guestForm.value.name, email: guestForm.value.email, password: guestForm.value.password },
+            body: { token, name: guestForm.value.name, password: guestForm.value.password },
         })
         if (response.data?.accessToken) setAuthToken(response.data.accessToken)
         albumInfo.value = {
@@ -593,32 +551,6 @@ const handleGuestLogin = async () => {
 }
 
 const goToLogin = () => navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
-
-const handleGoogleLogin = async () => {
-    googleLoading.value = true
-    try {
-        const res = await $fetch<{ success: boolean; data: { url: string } }>('/api/v1/auth/google/initiate', {
-            query: { uploadToken: token },
-        })
-        window.location.href = res.data.url
-    } catch (err: any) {
-        loginError.value = err.data?.statusMessage || 'Google sign-in is not available'
-        googleLoading.value = false
-    }
-}
-
-const handleMicrosoftLogin = async () => {
-    microsoftLoading.value = true
-    try {
-        const res = await $fetch<{ success: boolean; data: { url: string } }>('/api/v1/auth/microsoft/initiate', {
-            query: { uploadToken: token },
-        })
-        window.location.href = res.data.url
-    } catch (err: any) {
-        loginError.value = err.data?.statusMessage || 'Microsoft sign-in is not available'
-        microsoftLoading.value = false
-    }
-}
 
 const formatDate = (timestamp: number) =>
     new Date(timestamp * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })

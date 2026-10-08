@@ -30,8 +30,8 @@ export default defineEventHandler(async (event) => {
         const album = await db.query.albums.findFirst({
             where: eq(albums.id, id),
             with: {
-                owner: { columns: { id: true, name: true, email: true, instagram: true, avatarPath: true } },
-                collaborators: { with: { user: { columns: { id: true, name: true, email: true, instagram: true, avatarPath: true } } } },
+                owner: { columns: { id: true, name: true, username: true, instagram: true, avatarPath: true } },
+                collaborators: { with: { user: { columns: { id: true, name: true, username: true, instagram: true, avatarPath: true } } } },
                 coverPhoto: { columns: { id: true, blurhash: true } },
             },
         })
@@ -42,14 +42,14 @@ export default defineEventHandler(async (event) => {
         const collaborator = album.collaborators.find(c => c.userId === authUserId)
         const isCollaborator = !!collaborator
 
-        let hasEmail = false
+        let hasPassword = false
         let isMember = false
         if (authUserId) {
             const userRecord = await db.query.users.findFirst({
                 where: eq(users.id, authUserId),
-                columns: { email: true, passwordHash: true, googleId: true, microsoftId: true, role: true }
+                columns: { passwordHash: true, role: true }
             })
-            hasEmail = !!userRecord?.email
+            hasPassword = !!userRecord?.passwordHash
             isMember = isMemberRecord(userRecord ?? null)
         }
 
@@ -141,7 +141,7 @@ export default defineEventHandler(async (event) => {
             db.select({
                 id: users.id,
                 name: users.name,
-                email: users.email,
+                username: users.username,
                 instagram: users.instagram,
                 avatarPath: users.avatarPath,
             })
@@ -198,7 +198,7 @@ export default defineEventHandler(async (event) => {
                 createdAt: Number(collab.createdAt),
                 user: {
                     ...collab.user,
-                    email: isGuest ? undefined : collab.user.email,
+                    username: isGuest ? undefined : collab.user.username,
                     avatar: collab.user.avatarPath ? `/api/assets/avatar/${collab.user.id}` : null,
                 },
             }))
@@ -223,7 +223,7 @@ export default defineEventHandler(async (event) => {
                 ...album,
                 owner: album.owner ? {
                     ...album.owner,
-                    email: isGuest ? undefined : album.owner.email,
+                    username: isGuest ? undefined : album.owner.username,
                     avatar: album.owner.avatarPath ? `/api/assets/avatar/${album.owner.id}` : null,
                 } : null,
                 coverPhoto,
@@ -236,8 +236,8 @@ export default defineEventHandler(async (event) => {
                 permissions: {
                     isOwner,
                     isCollaborator,
-                    canEdit: isOwner && hasEmail,
-                    canDelete: isOwner && hasEmail,
+                    canEdit: isOwner && hasPassword,
+                    canDelete: isOwner && hasPassword,
                     canUpload: isOwner || isMember || (isCollaborator && ['admin', 'editor'].includes(collaborator.role)),
                 },
                 pagination: { page, limit, total: totalPhotos, hasMore: skip + photoRows.length < totalPhotos },
@@ -247,7 +247,7 @@ export default defineEventHandler(async (event) => {
                     uploaders: uploaderRows.map(u => ({
                         id: u.id,
                         name: u.name,
-                        email: isGuest ? undefined : u.email,
+                        username: isGuest ? undefined : u.username,
                         instagram: u.instagram,
                         avatar: u.avatarPath ? `/api/assets/avatar/${u.id}` : null,
                     })).sort((a, b) => (a.name || '').localeCompare(b.name || '')),

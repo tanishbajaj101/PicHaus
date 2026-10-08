@@ -18,7 +18,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     const user = currentUser.value
     if (user) {
-        const isGuest = !user.email || !user.hasPassword
+        const isGuest = !user.hasPassword
         if (isGuest && to.path !== '/onboarding') {
             return navigateTo(`/onboarding?redirect=${encodeURIComponent(to.fullPath)}`)
         }

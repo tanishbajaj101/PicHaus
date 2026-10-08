@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
         const owner = await db.query.users.findFirst({
             where: eq(users.id, user.id),
-            columns: { id: true, name: true, email: true },
+            columns: { id: true, name: true, username: true },
         })
 
         return {

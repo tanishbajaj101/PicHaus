@@ -371,4 +371,29 @@ ON CONFLICT ("id") DO NOTHING`,
             `ALTER TABLE "share_links" ADD COLUMN IF NOT EXISTS "uploadMessage" text`,
         ],
     },
+    {
+        // This fork drops email entirely (no email is ever collected) in favor
+        // of username + password, and removes Google/Microsoft OAuth along
+        // with it since account linking depended on email.
+        name: '0016_username_only_auth.sql',
+        statements: [
+            `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "username" text`,
+            `DROP INDEX IF EXISTS "users_email_key"`,
+            `DROP INDEX IF EXISTS "users_googleId_key"`,
+            `DROP INDEX IF EXISTS "users_microsoftId_key"`,
+            `ALTER TABLE "users" DROP COLUMN IF EXISTS "email"`,
+            `ALTER TABLE "users" DROP COLUMN IF EXISTS "googleId"`,
+            `ALTER TABLE "users" DROP COLUMN IF EXISTS "microsoftId"`,
+            `CREATE UNIQUE INDEX IF NOT EXISTS "users_username_key" ON "users"("username")`,
+            `ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "googleOAuthEnabled"`,
+            `ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "googleOAuthAllowedDomain"`,
+            `ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "googleOAuthShiftBypassEnabled"`,
+            `ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "googleButtonText"`,
+            `ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "googleButtonLogoId"`,
+            `ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "microsoftOAuthEnabled"`,
+            `ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "microsoftOAuthTenantId"`,
+            `ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "microsoftButtonText"`,
+            `ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "microsoftButtonLogoId"`,
+        ],
+    },
 ]

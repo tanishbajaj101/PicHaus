@@ -28,8 +28,8 @@ export default defineEventHandler(async (event) => {
         if (album.ownerId !== user.id) {
             throw createError({ statusCode: 403, statusMessage: 'Only the album owner can edit this album' })
         }
-        if (!user.email) {
-            throw createError({ statusCode: 403, statusMessage: 'Guest users cannot edit albums until they have an email assigned' })
+        if (!user.passwordHash) {
+            throw createError({ statusCode: 403, statusMessage: 'Guest users cannot edit albums until they register with a username and password' })
         }
 
         const contentType = getHeader(event, 'content-type') || ''

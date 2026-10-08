@@ -24,7 +24,7 @@ A self-hosted, collaborative photo album platform built for photography clubs. P
    - [API Tokens](#api-tokens)
    - [Settings](#settings)
    - [Admin Panel](#admin-panel)
-9. [OAuth and Registration](#oauth-and-registration)
+9. [Registration](#registration)
 10. [Invites and Password Resets](#invites-and-password-resets)
 11. [Branding](#branding)
 12. [External API Reference](#external-api-reference)
@@ -46,10 +46,10 @@ A self-hosted, collaborative photo album platform built for photography clubs. P
 - **Share groups** — bundle multiple albums under one share link
 - **Branding and theming** — customize site name, accent color, logos, album/share-group headers, and upload-page messages
 - **Instagram handles** — photographers can attach their Instagram username, shown on photos
-- **User avatars** — upload a cropped profile photo or import one automatically from OAuth providers
+- **User avatars** — upload a cropped profile photo
 - **Favorites** — mark photos as favorites while browsing a share link; selections persist per album context and survive page refresh
 - **Statistics dashboard** — top cameras, lenses, aperture/ISO/shutter distributions, monthly activity timeline
-- **Google and Microsoft sign-in** — optional OAuth login alongside email/password and passkeys
+- **Username + password accounts** (this fork) — no email is ever collected; accounts are username and password only
 - **Passkeys & security keys** — passwordless login via WebAuthn/FIDO2 (Face ID, Touch ID, Windows Hello, YubiKey, etc.)
 - **External API** — scoped API tokens for integrating PicHaus with external sites or workflows
 - **Fully self-hosted** — Docker image, PostgreSQL, local file storage
@@ -179,19 +179,13 @@ volumes:
 | `WEBAUTHN_RP_ID` | No | `localhost` | Passkey relying-party ID — must match the domain users visit (no port, no protocol) |
 | `WEBAUTHN_RP_NAME` | No | `PicHaus` | Human-readable relying-party name shown by the browser during passkey registration |
 | `WEBAUTHN_ORIGIN` | No | `http://localhost:3000` | Exact origin in the browser address bar — must include protocol and port if non-standard |
-| `GOOGLE_CLIENT_ID` | No | — | OAuth 2.0 client ID from Google Cloud Console — enables Google Sign-In when set |
-| `GOOGLE_CLIENT_SECRET` | No | — | OAuth 2.0 client secret — required alongside `GOOGLE_CLIENT_ID` |
-| `MICROSOFT_CLIENT_ID` | No | — | OAuth 2.0 application/client ID from Microsoft Entra ID — enables Microsoft Sign-In when set |
-| `MICROSOFT_CLIENT_SECRET` | No | — | OAuth 2.0 client secret — required alongside `MICROSOFT_CLIENT_ID` |
 | `COMMUNITY_MODE` | No | `true` | This fork only. Set to `false` to restore upstream owner/collaborator-only behaviour. See [Community mode](#community-mode-this-fork). |
 
 > **Security**: `AUTH_SECRET` must be a random string of at least 32 characters. In production the server will refuse to start without it.
 
 > **Passkeys in production**: Set `WEBAUTHN_RP_ID` to your bare domain (e.g. `photos.example.com`), `WEBAUTHN_ORIGIN` to `https://photos.example.com`, and `WEBAUTHN_RP_NAME` to whatever label you want users to see in their authenticator. The three values must match exactly — mismatches cause silent passkey registration or login failures.
 
-> **Google Sign-In**: Create an OAuth 2.0 credential in [Google Cloud Console](https://console.cloud.google.com/apis/credentials), add your origin to the authorised JavaScript origins, and add `<origin>/api/v1/auth/google/callback` as an authorised redirect URI. Set both `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to enable the feature — Google Sign-In is hidden from the UI when `GOOGLE_CLIENT_ID` is absent.
-
-> **Microsoft Sign-In**: Create an app registration in Microsoft Entra ID, add `<origin>/api/v1/auth/microsoft/callback` as a web redirect URI, and set both `MICROSOFT_CLIENT_ID` and `MICROSOFT_CLIENT_SECRET`. The app requests `openid email profile User.Read`. Admins can enable the button and optionally set a tenant ID from **Admin** → **Settings**; `common` is used when no tenant is configured.
+> **No email, ever (this fork)**: accounts are username and password only. Google and Microsoft OAuth sign-in were removed along with the `email` column they depended on — there is no code path anywhere that asks a user, admin, or share-link guest for an email address.
 
 > **Auto-Compression and Resizing**:
 > PicHaus automatically compresses and resizes uploaded photos to keep storage footprint and load times low, while preserving EXIF metadata on the saved files:
@@ -206,7 +200,7 @@ volumes:
 
 This fork adds an opt-out "community mode" for small groups who want to share everything with each other, rather than keeping albums private by default.
 
-- Every signed-in **member** — any account with a password, Google, or Microsoft login, or the `ADMIN` role — can see, upload to, and download from **every** album, not just ones they own or were added to as a collaborator.
+- Every signed-in **member** — any account with a password, or the `ADMIN` role — can see, upload to, and download from **every** album, not just ones they own or were added to as a collaborator.
 - Anyone can create albums (this was already true upstream).
 - Anonymous guest accounts created by upload share links are **not** members, even if community mode is on. A share link still only unlocks the one album it points to.
 - Album edit, album delete, cover photo, share links, collaborator management, and batch album edit remain **owner-only** — community mode only widens viewing, uploading, and downloading.
@@ -220,7 +214,7 @@ Set `COMMUNITY_MODE="false"` in your environment to disable all of the above and
 ## First-Time Setup
 
 1. Navigate to `http://your-host:3000` — you are automatically redirected to `/setup`
-2. Enter a name, email address, and password (minimum 8 characters) for the admin account
+2. Enter a name, username, and password (minimum 8 characters) for the admin account
 3. Click **Complete Setup** — you are redirected to `/login`
 4. Sign in with the credentials you just created
 
@@ -271,7 +265,7 @@ Open an album → click the cover area → select any photo → crop using the 1
 
 **Album branding**
 
-Album owners can set a theme preset, custom theme values, header logo text, or a logo image. These settings are used on the album page, public share views, and upload pages. Logos are uploaded once and can be reused across albums, share groups, OAuth buttons, and site branding.
+Album owners can set a theme preset, custom theme values, header logo text, or a logo image. These settings are used on the album page, public share views, and upload pages. Logos are uploaded once and can be reused across albums, share groups, and site branding.
 
 **Batch operations**
 
@@ -369,7 +363,7 @@ This is designed for photography club events: the club owner creates an **upload
 
 1. Open the share link URL (`/v/<token>`) and click **Upload Photos**
 2. If password-protected, enter the password
-3. Enter a display name and optionally an email and Instagram handle
+3. Enter a display name and optionally an Instagram handle
 4. Drag and drop photos onto the upload zone, or click to browse — a full-page overlay activates when files are dragged over the window
 5. A per-file thumbnail queue appears showing each file's status: pending → hashing → uploading → done / duplicate / error
 6. An overall progress bar tracks the batch; a summary (N uploaded · N duplicates skipped · N failed) appears on completion
@@ -379,10 +373,7 @@ Uploads use resumable chunks. If the browser reconnects while the same file hash
 
 **Account behaviour**
 
-- **No email provided** → an anonymous guest account is created
-- **New email** → a new account is created with that email
-- **Existing email, no password** → authenticated as the existing guest account
-- **Existing email with password** → must provide the account password to authenticate
+An upload link never asks for or collects an email address. Each visit creates a fresh anonymous guest account (name + optional Instagram handle only). If the photographer later wants a permanent account, they can sign up with a username and password from the **Create Account** option on the share link's identity step.
 
 Uploaded photos are credited to the photographer's account and their Instagram handle (if provided) is shown on their photos.
 
@@ -427,36 +418,27 @@ Tokens can be revoked at any time from the API Keys page.
 
 The **Settings** page lets each user update profile details, Instagram handle, theme preference, passkeys, and profile photo. Avatar uploads are cropped in the browser, saved as WebP, and shown on album, share, collaborator, and photographer views.
 
-OAuth sign-ins can import provider profile photos on first login. A manually uploaded avatar is never overwritten by Google or Microsoft.
-
 ---
 
 ### Admin Panel
 
 Accessible under `/admin/*` for accounts with the `ADMIN` role.
 
-- **Users** — view all users, edit name/email/Instagram/role, promote or demote admins, impersonate a user for troubleshooting, merge duplicate accounts, and delete users
+- **Users** — view all users, edit name/username/Instagram/role, promote or demote admins, impersonate a user for troubleshooting, merge duplicate accounts, and delete users
 - **Invites** — create invite links and password-reset links, review usage, and revoke unused links
-- **Settings** — configure site name, accent color, site logo, public registration, Google OAuth, Microsoft OAuth, OAuth button text, OAuth button logos, and Google Workspace domain restrictions
-- **Logos** — upload and delete reusable logo assets, with usage badges for site, OAuth, album, and share-group references
+- **Settings** — configure site name, accent color, site logo, and public registration
+- **Logos** — upload and delete reusable logo assets, with usage badges for site, album, and share-group references
 - **Status** — inspect deployment health and configured services
 
 The app prevents demoting the last remaining admin.
 
 ---
 
-## OAuth and Registration
+## Registration
 
-Email/password login is always available for existing accounts. Public self-registration is controlled by **Admin** → **Settings** → **Allow public registration**.
+Username/password login is always available for existing accounts. Public self-registration is controlled by **Admin** → **Settings** → **Allow public registration**. When disabled, new accounts can only be created via admin-issued invite links.
 
-Google and Microsoft OAuth have two layers:
-
-1. Environment variables provide the provider credentials.
-2. Admin settings decide whether the login buttons are shown and how they are labeled.
-
-For Google Workspace installs, set an allowed domain in admin settings to require Google's hosted-domain claim (`hd`) to match that domain. Holding Shift during Google sign-in can bypass that restriction only when the admin setting is enabled.
-
-OAuth users are matched by provider ID or email. On first successful OAuth login, PicHaus creates a user if one does not already exist, stores the provider ID, and imports a profile photo when available.
+This fork never collects an email address anywhere — not at setup, registration, profile editing, or guest upload. There is no OAuth; Google and Microsoft sign-in were removed along with the `email` column they depended on.
 
 ---
 
@@ -477,7 +459,6 @@ Invite links are opened at `/invite/<token>`.
 PicHaus branding is layered:
 
 - **Site settings** control the global site name, accent color, and navbar/logo shown across the app.
-- **OAuth button settings** control custom text and optional logo assets for Google and Microsoft sign-in buttons.
 - **Album settings** control the logo text/image and theme for that album's private page, public share page, and upload page.
 - **Share group settings** control the logo text/image and theme for grouped public views.
 
@@ -711,7 +692,7 @@ PicHaus uses a custom HMAC-SHA256 token scheme rather than a JWT library.
 
 **Session tokens**
 
-- Created on login (password, passkey, Google, Microsoft, or guest upload flow), valid for 7 days
+- Created on login (password, passkey, or guest upload flow), valid for 7 days
 - Stored in `localStorage` under the key `pichaus_access_token`
 - Sent as `Authorization: Bearer <token>` on every API call
 - For image asset URLs, appended as `?access_token=<token>`
@@ -768,7 +749,7 @@ Asset delivery defaults to `ASSET_DELIVERY=proxy`, where browsers request PicHau
 ```
 storage/uploads/
 ├── avatars/         # User avatars
-├── logos/           # Site, OAuth button, album, and share group logos
+├── logos/           # Site, album, and share group logos
 ├── photos/          # Original uploaded files + cover photos
 ├── resumable/       # Temporary resumable-upload sessions
 └── thumbnails/      # WebP thumbnails (max 400×400)
@@ -902,8 +883,8 @@ On first boot after upgrading from a Prisma-managed database, the runner detects
 
 | Table | Description |
 |---|---|
-| `users` | Accounts — email, Argon2id password hash, name, Instagram, role |
-| `logos` | Reusable logo assets for site branding, OAuth buttons, albums, and share groups |
+| `users` | Accounts — username, Argon2id password hash, name, Instagram, role |
+| `logos` | Reusable logo assets for site branding, albums, and share groups |
 | `albums` | Photo collection — title, description, tags, event date, visibility, cover photo |
 | `photos` | Image file — storage paths, dimensions, blurhash, SHA-256 hash, full EXIF data |
 | `share_links` | Token-based share link — type (view/upload), optional password, expiry, metadata flag, and upload message |
@@ -912,7 +893,7 @@ On first boot after upgrading from a Prisma-managed database, the runner detects
 | `api_tokens` | External API token — hashed, scoped, optional expiry |
 | `passkeys` | WebAuthn/FIDO2 credentials for passwordless login |
 | `invite_tokens` | Invite and password-reset tokens |
-| `site_settings` | Global site branding, registration, and OAuth button configuration |
+| `site_settings` | Global site branding and registration configuration |
 
 **Schema changes**
 

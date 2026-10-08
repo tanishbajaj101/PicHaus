@@ -46,8 +46,8 @@
                 style="background: var(--surface-1); border: 1px solid var(--separator); box-shadow: var(--shadow-xl);">
                 <div class="mb-6">
                     <h2 class="text-2xl font-bold mb-1" style="color: var(--text-1);">Reset Password</h2>
-                    <p v-if="tokenData.targetEmail" class="text-sm" style="color: var(--text-2);">
-                        For <span style="color: var(--text-1);">{{ tokenData.targetEmail }}</span>
+                    <p v-if="tokenData.targetUsername" class="text-sm" style="color: var(--text-2);">
+                        For <span style="color: var(--text-1);">{{ tokenData.targetUsername }}</span>
                     </p>
                 </div>
                 <form @submit.prevent="submit" class="space-y-4">
@@ -101,11 +101,11 @@
                             @blur="($event.target as HTMLElement).style.borderColor = 'var(--separator)'; ($event.target as HTMLElement).style.boxShadow = 'none'" />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Email</label>
-                        <input v-model="form.email" type="email" required
+                        <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Username</label>
+                        <input v-model="form.username" type="text" required autocomplete="username"
                             class="w-full px-3.5 py-2.5 text-sm rounded-xl transition"
                             style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1); outline: none;"
-                            placeholder="your@email.com"
+                            placeholder="yourusername"
                             @focus="($event.target as HTMLElement).style.borderColor = 'var(--accent)'; ($event.target as HTMLElement).style.boxShadow = '0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent)'"
                             @blur="($event.target as HTMLElement).style.borderColor = 'var(--separator)'; ($event.target as HTMLElement).style.boxShadow = 'none'" />
                     </div>
@@ -148,7 +148,7 @@ interface TokenData {
     type: 'invite' | 'password_reset'
     label: string | null
     expiresAt: number
-    targetEmail: string | null
+    targetUsername: string | null
     targetName: string | null
 }
 
@@ -160,7 +160,7 @@ const doneMessage = ref('')
 const submitting = ref(false)
 const submitError = ref<string | null>(null)
 
-const form = reactive({ name: '', email: '', password: '', confirm: '' })
+const form = reactive({ name: '', username: '', password: '', confirm: '' })
 
 onMounted(async () => {
     try {
@@ -185,7 +185,7 @@ async function submit() {
     try {
         const body = tokenData.value?.type === 'password_reset'
             ? { password: form.password }
-            : { name: form.name, email: form.email, password: form.password }
+            : { name: form.name, username: form.username, password: form.password }
 
         const res = await $fetch<any>(`/api/invite/${token}`, { method: 'POST', body })
         if (res.data?.accessToken) setAuthToken(res.data.accessToken)

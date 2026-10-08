@@ -33,14 +33,14 @@ const REQUIRED_TABLES = [
 ]
 
 const REQUIRED_COLUMNS: Record<string, string[]> = {
-    users: ['id', 'email', 'passwordHash', 'createdAt', 'updatedAt', 'role', 'avatarPath', 'googleId', 'microsoftId', 'themePreference'],
+    users: ['id', 'username', 'passwordHash', 'createdAt', 'updatedAt', 'role', 'avatarPath', 'themePreference'],
     albums: ['id', 'title', 'createdAt', 'updatedAt', 'ownerId', 'themePreset', 'customTheme', 'logoText', 'logoImageId'],
     photos: ['id', 'filename', 'storagePath', 'thumbnailStoragePath', 'blurhash', 'size', 'albumId'],
     share_groups: ['id', 'title', 'createdAt', 'updatedAt', 'ownerId', 'themePreset', 'customTheme', 'logoText', 'logoImageId', 'tags'],
     share_links: ['id', 'token', 'type', 'views', 'createdAt', 'showMetadata', 'uploadMessage', 'albumId', 'shareGroupId'],
     invite_tokens: ['id', 'token', 'type', 'expiresAt', 'createdAt'],
     logos: ['id', 'storagePath', 'originalName', 'mimeType', 'uploadedAt'],
-    site_settings: ['id', 'siteName', 'updatedAt', 'allowRegistration', 'googleOAuthEnabled', 'microsoftOAuthEnabled'],
+    site_settings: ['id', 'siteName', 'updatedAt', 'allowRegistration'],
 }
 
 function sqlList(values: string[]) {

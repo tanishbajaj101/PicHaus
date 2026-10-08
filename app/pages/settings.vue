@@ -55,8 +55,8 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Email</label>
-                        <input v-model="form.email" type="email" required
+                        <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Username</label>
+                        <input v-model="form.username" type="text" required autocomplete="username"
                             class="w-full px-3.5 py-2.5 text-sm rounded-xl transition"
                             style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1); outline: none;"
                             @focus="($event.target as HTMLElement).style.borderColor = 'var(--accent)'; ($event.target as HTMLElement).style.boxShadow = '0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent)'"
@@ -284,7 +284,7 @@
 <script setup lang="ts">
 const dialog = useDialog()
 const userState = useState<any>('navbar-user', () => null)
-const form = ref({ name: '', email: '', instagram: '', password: '', currentAvatar: '' as string | null })
+const form = ref({ name: '', username: '', instagram: '', password: '', currentAvatar: '' as string | null })
 const saving = ref(false)
 const error = ref('')
 const success = ref('')
@@ -523,7 +523,7 @@ onMounted(async () => {
         const res = await $fetch<{ success: boolean; data: any }>('/api/v1/auth/me')
         if (res?.data) {
             form.value.name = res.data.name || ''
-            form.value.email = res.data.email || ''
+            form.value.username = res.data.username || ''
             form.value.instagram = res.data.instagram || ''
             form.value.currentAvatar = res.data.avatar || null
         } else {
@@ -538,14 +538,14 @@ onMounted(async () => {
 const handleSave = async () => {
     saving.value = true; error.value = ''; success.value = ''
     try {
-        const body: any = { name: form.value.name, email: form.value.email, instagram: form.value.instagram }
+        const body: any = { name: form.value.name, username: form.value.username, instagram: form.value.instagram }
         if (form.value.password) body.password = form.value.password
         const res = await $fetch<{ success: boolean; data: any }>('/api/v1/users/me', { method: 'PATCH', body })
         success.value = 'Profile updated successfully'
         form.value.password = ''
         if (userState.value && res?.data) {
             userState.value.name = res.data.name
-            userState.value.email = res.data.email
+            userState.value.username = res.data.username
             userState.value.instagram = res.data.instagram
             userState.value.avatar = res.data.avatar
         }

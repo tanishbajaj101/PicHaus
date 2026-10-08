@@ -360,8 +360,8 @@ const userInitials = computed(() => {
         if (parts.length === 1) return parts[0]?.slice(0, 2) || 'U'
         return `${parts[0]?.[0] || ''}${parts[1]?.[0] || ''}` || 'U'
     }
-    const email = (user.value?.email || '').trim()
-    if (email) return email.slice(0, 2)
+    const username = (user.value?.username || '').trim()
+    if (username) return username.slice(0, 2)
     return 'U'
 })
 

@@ -1,6 +1,6 @@
 import { count, eq, sql } from 'drizzle-orm'
 import { users } from '../../../db/schema'
-import { hashPassword, getUnixTimestamp } from '../../../utils/auth'
+import { hashPassword, getUnixTimestamp, normalizeUsername } from '../../../utils/auth'
 import { enforceRateLimit } from '../../../utils/rate-limit'
 
 export default defineEventHandler(async (event) => {
@@ -8,7 +8,8 @@ export default defineEventHandler(async (event) => {
         enforceRateLimit(event, { key: 'initial-setup', limit: 5, windowMs: 15 * 60 * 1000 })
 
         const body = await readBody(event)
-        if (!body.email || !body.password) throw createError({ statusCode: 400, statusMessage: 'Email and password are required' })
+        const username = normalizeUsername(body.username)
+        if (!username || !body.password) throw createError({ statusCode: 400, statusMessage: 'Username (3-32 letters, numbers, underscore, period, or hyphen) and password are required' })
         if (body.password.length < 8) throw createError({ statusCode: 400, statusMessage: 'Password must be at least 8 characters' })
 
         const passwordHash = await hashPassword(body.password)
@@ -23,13 +24,13 @@ export default defineEventHandler(async (event) => {
             }
 
             const [created] = await tx.insert(users).values({
-                email: body.email,
+                username,
                 passwordHash,
                 name: body.name || 'Admin',
                 role: 'ADMIN',
                 createdAt: now,
                 updatedAt: now,
-            }).returning({ id: users.id, email: users.email, name: users.name, createdAt: users.createdAt })
+            }).returning({ id: users.id, username: users.username, name: users.name, createdAt: users.createdAt })
 
             return created
         })

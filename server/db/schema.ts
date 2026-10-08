@@ -8,10 +8,8 @@ export const roleEnum = pgEnum('Role', ['USER', 'ADMIN'])
 
 export const users = pgTable('users', {
     id: uuid('id').primaryKey().defaultRandom(),
-    email: text('email').unique(),
+    username: text('username').unique(),
     passwordHash: text('passwordHash'),
-    googleId: text('googleId').unique(),
-    microsoftId: text('microsoftId').unique(),
     name: text('name'),
     instagram: text('instagram'),
     avatarPath: text('avatarPath'),
@@ -180,15 +178,6 @@ export const siteSettings = pgTable('site_settings', {
     accentColor: text('accentColor'),
     logoImageId: uuid('logoImageId').references(() => logos.id, { onDelete: 'set null' }),
     allowRegistration: boolean('allowRegistration').default(false).notNull(),
-    googleOAuthEnabled: boolean('googleOAuthEnabled').default(false).notNull(),
-    googleOAuthAllowedDomain: text('googleOAuthAllowedDomain'),
-    googleOAuthShiftBypassEnabled: boolean('googleOAuthShiftBypassEnabled').default(false).notNull(),
-    googleButtonText: text('googleButtonText'),
-    googleButtonLogoId: uuid('googleButtonLogoId').references(() => logos.id, { onDelete: 'set null' }),
-    microsoftOAuthEnabled: boolean('microsoftOAuthEnabled').default(false).notNull(),
-    microsoftOAuthTenantId: text('microsoftOAuthTenantId'),
-    microsoftButtonText: text('microsoftButtonText'),
-    microsoftButtonLogoId: uuid('microsoftButtonLogoId').references(() => logos.id, { onDelete: 'set null' }),
     updatedAt: bigint('updatedAt', { mode: 'bigint' }).notNull(),
 })
 

@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
         .where(eq(siteSettings.id, 1))
         .limit(1)
 
-    const row = rows[0] ?? ({ siteName: 'PicHaus', accentColor: null, logoImageId: null, allowRegistration: false, googleOAuthEnabled: false, googleOAuthAllowedDomain: null } as any)
+    const row = rows[0] ?? ({ siteName: 'PicHaus', accentColor: null, logoImageId: null, allowRegistration: false } as any)
 
     return {
         success: true,
@@ -22,19 +22,6 @@ export default defineEventHandler(async (event) => {
             logoImageId: row.logoImageId,
             logoImageUrl: row.logoImageId ? `/api/assets/logo/${row.logoImageId}` : null,
             allowRegistration: row.allowRegistration,
-            googleOAuthEnabled: row.googleOAuthEnabled,
-            googleOAuthAllowedDomain: row.googleOAuthAllowedDomain ?? '',
-            googleOAuthShiftBypassEnabled: row.googleOAuthShiftBypassEnabled ?? false,
-            googleButtonText: row.googleButtonText ?? '',
-            googleButtonLogoId: row.googleButtonLogoId ?? null,
-            googleButtonLogoUrl: row.googleButtonLogoId ? `/api/assets/logo/${row.googleButtonLogoId}` : null,
-            googleClientIdConfigured: !!process.env.GOOGLE_CLIENT_ID,
-            microsoftOAuthEnabled: row.microsoftOAuthEnabled ?? false,
-            microsoftOAuthTenantId: row.microsoftOAuthTenantId ?? '',
-            microsoftButtonText: row.microsoftButtonText ?? '',
-            microsoftButtonLogoId: row.microsoftButtonLogoId ?? null,
-            microsoftButtonLogoUrl: row.microsoftButtonLogoId ? `/api/assets/logo/${row.microsoftButtonLogoId}` : null,
-            microsoftClientIdConfigured: !!process.env.MICROSOFT_CLIENT_ID,
         },
     }
 })

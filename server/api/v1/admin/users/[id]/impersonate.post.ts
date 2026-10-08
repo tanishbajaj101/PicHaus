@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
         data: {
             accessToken,
             name: target.name,
-            email: target.email,
+            username: target.username,
         },
     }
 })

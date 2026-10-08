@@ -5,6 +5,19 @@ import { users } from '../db/schema'
 
 const ACCESS_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7 // 7 days
 
+const USERNAME_RE = /^[a-z0-9_.-]{3,32}$/
+
+/**
+ * Trims and lowercases a candidate username and checks it against the
+ * allowed shape. Returns null if the input isn't a valid username so callers
+ * can throw a consistent 400 error.
+ */
+export function normalizeUsername(raw: unknown): string | null {
+    if (typeof raw !== 'string') return null
+    const normalized = raw.trim().toLowerCase()
+    return USERNAME_RE.test(normalized) ? normalized : null
+}
+
 function base64UrlEncode(value: string): string {
     return Buffer.from(value, 'utf8').toString('base64url')
 }

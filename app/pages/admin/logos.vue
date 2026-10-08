@@ -54,9 +54,6 @@
                             <span v-if="logo.usage.siteLogoActive"
                                 class="px-1.5 py-0.5 rounded text-[10px] font-medium"
                                 style="background: var(--accent-light); color: var(--accent);">Site logo</span>
-                            <span v-if="logo.usage.googleButtonActive"
-                                class="px-1.5 py-0.5 rounded text-[10px] font-medium"
-                                style="background: var(--accent-light); color: var(--accent);">Google btn</span>
                             <span v-if="logo.usage.albumCount > 0"
                                 class="px-1.5 py-0.5 rounded text-[10px] font-medium"
                                 style="background: var(--surface-3); color: var(--text-2);">
@@ -83,7 +80,6 @@ const dialog = useDialog()
 
 interface LogoUsage {
     siteLogoActive: boolean
-    googleButtonActive: boolean
     albumCount: number
     groupCount: number
 }
@@ -143,7 +139,6 @@ const confirmDelete = async (logo: Logo) => {
     const inUse = isInUse(logo)
     const usageLines: string[] = []
     if (logo.usage.siteLogoActive) usageLines.push('site logo')
-    if (logo.usage.googleButtonActive) usageLines.push('Google sign-in button')
     if (logo.usage.albumCount > 0) usageLines.push(`${logo.usage.albumCount} album(s)`)
     if (logo.usage.groupCount > 0) usageLines.push(`${logo.usage.groupCount} share group(s)`)
 
@@ -165,7 +160,7 @@ const confirmDelete = async (logo: Logo) => {
 }
 
 const isInUse = (logo: Logo) =>
-    logo.usage.siteLogoActive || logo.usage.googleButtonActive ||
+    logo.usage.siteLogoActive ||
     logo.usage.albumCount > 0 || logo.usage.groupCount > 0
 
 const formatDate = (ts: number) => new Date(ts * 1000).toLocaleDateString()

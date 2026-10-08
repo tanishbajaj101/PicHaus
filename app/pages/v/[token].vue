@@ -706,7 +706,6 @@ const showPhotographersModal = ref(false)
 const photographers = ref<Array<{
     id: string
     name: string
-    email: string | null
     instagram: string | null
     role: string
     avatar?: string | null

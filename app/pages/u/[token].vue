@@ -65,48 +65,6 @@
                         <Icon name="lucide:chevron-right" class="w-4 h-4 flex-shrink-0" style="color: var(--text-3);" :stroke-width="2" />
                     </button>
 
-                    <!-- Google Sign In -->
-                    <button v-if="siteSettings.googleOAuthEnabled" type="button" @click="handleGoogleLogin($event)"
-                        :disabled="googleLoading"
-                        class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition disabled:opacity-60"
-                        style="background: var(--surface-2); border: 1px solid var(--separator);"
-                        @mouseover="!googleLoading && (($event.currentTarget as HTMLElement).style.borderColor = 'var(--accent)')"
-                        @mouseout="($event.currentTarget as HTMLElement).style.borderColor = 'var(--separator)'">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-white border"
-                            style="border-color: var(--separator);">
-                            <img v-if="!googleLoading && siteSettings.googleButtonLogoUrl" :src="siteSettings.googleButtonLogoUrl" class="w-5 h-5 object-contain" />
-                            <Icon v-else-if="!googleLoading" name="logos:google-icon" class="w-5 h-5" />
-                            <div v-else class="w-4 h-4 rounded-full border-2 animate-spin"
-                                style="border-color: var(--separator); border-top-color: #4285F4;"></div>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-semibold" style="color: var(--text-1);">{{ siteSettings.googleButtonText || 'Sign in with Google' }}</p>
-                            <p class="text-xs mt-0.5" style="color: var(--text-3);">Use your Google account</p>
-                        </div>
-                        <Icon name="lucide:chevron-right" class="w-4 h-4 flex-shrink-0" style="color: var(--text-3);" :stroke-width="2" />
-                    </button>
-
-                    <!-- Microsoft Sign In -->
-                    <button v-if="siteSettings.microsoftOAuthEnabled" type="button" @click="handleMicrosoftLogin"
-                        :disabled="microsoftLoading"
-                        class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition disabled:opacity-60"
-                        style="background: var(--surface-2); border: 1px solid var(--separator);"
-                        @mouseover="!microsoftLoading && (($event.currentTarget as HTMLElement).style.borderColor = 'var(--accent)')"
-                        @mouseout="($event.currentTarget as HTMLElement).style.borderColor = 'var(--separator)'">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-white border"
-                            style="border-color: var(--separator);">
-                            <img v-if="!microsoftLoading && siteSettings.microsoftButtonLogoUrl" :src="siteSettings.microsoftButtonLogoUrl" class="w-5 h-5 object-contain" />
-                            <Icon v-else-if="!microsoftLoading" name="logos:microsoft-icon" class="w-5 h-5" />
-                            <div v-else class="w-4 h-4 rounded-full border-2 animate-spin"
-                                style="border-color: var(--separator); border-top-color: #00a4ef;"></div>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-semibold" style="color: var(--text-1);">{{ siteSettings.microsoftButtonText || 'Sign in with Microsoft' }}</p>
-                            <p class="text-xs mt-0.5" style="color: var(--text-3);">Use your Microsoft account</p>
-                        </div>
-                        <Icon name="lucide:chevron-right" class="w-4 h-4 flex-shrink-0" style="color: var(--text-3);" :stroke-width="2" />
-                    </button>
-
                     <!-- Divider -->
                     <div class="relative py-1">
                         <div class="absolute inset-0 flex items-center">
@@ -129,7 +87,7 @@
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-semibold" style="color: var(--text-1);">Create Account</p>
-                            <p class="text-xs mt-0.5" style="color: var(--text-3);">Sign up with email and password</p>
+                            <p class="text-xs mt-0.5" style="color: var(--text-3);">Sign up with username and password</p>
                         </div>
                         <Icon name="lucide:chevron-right" class="w-4 h-4 flex-shrink-0" style="color: var(--text-3);" :stroke-width="2" />
                     </button>
@@ -171,8 +129,8 @@
                             @blur="($event.target as HTMLElement).style.borderColor = 'var(--separator)'; ($event.target as HTMLElement).style.boxShadow = 'none'" />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Email</label>
-                        <input v-model="signupForm.email" type="email" required placeholder="your@email.com"
+                        <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Username</label>
+                        <input v-model="signupForm.username" type="text" required autocomplete="username" placeholder="yourusername"
                             class="w-full px-3.5 py-2.5 text-sm rounded-xl transition"
                             style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1); outline: none;"
                             @focus="($event.target as HTMLElement).style.borderColor = 'var(--accent)'; ($event.target as HTMLElement).style.boxShadow = '0 0 0 3px rgba(var(--accent-rgb), 0.15)'"
@@ -336,16 +294,13 @@ const isLoggedIn = ref(false)
 const uploadPassword = ref('')
 const verifying = ref(false)
 
-const signupForm = ref({ name: '', email: '', password: '', confirmPassword: '' })
+const signupForm = ref({ name: '', username: '', password: '', confirmPassword: '' })
 const signupError = ref('')
 const submitting = ref(false)
 
 const guestForm = ref({ name: '', instagram: '' })
 const guestError = ref('')
 const guestSubmitting = ref(false)
-
-const googleLoading = ref(false)
-const microsoftLoading = ref(false)
 
 interface FileUpload {
     file: File
@@ -500,41 +455,6 @@ const handlePasswordSubmit = async () => {
     }
 }
 
-const handleGoogleLogin = async (event?: MouseEvent) => {
-    googleLoading.value = true
-    try {
-        if (uploadPassword.value) {
-            sessionStorage.setItem(`upload_pw_${token}`, uploadPassword.value)
-        }
-        const bypassDomain = siteSettings.value.googleOAuthShiftBypassEnabled && event?.shiftKey
-        const query = new URLSearchParams({ uploadToken: token })
-        if (bypassDomain) query.set('bypassDomain', 'true')
-        const res = await $fetch<{ success: boolean; data: { url: string } }>(
-            `/api/v1/auth/google/initiate?${query}`
-        )
-        await navigateTo(res.data.url, { external: true })
-    } catch (err: any) {
-        googleLoading.value = false
-        dialog.toast(err.data?.statusMessage || 'Failed to initiate Google sign-in')
-    }
-}
-
-const handleMicrosoftLogin = async () => {
-    microsoftLoading.value = true
-    try {
-        if (uploadPassword.value) {
-            sessionStorage.setItem(`upload_pw_${token}`, uploadPassword.value)
-        }
-        const res = await $fetch<{ success: boolean; data: { url: string } }>(
-            `/api/v1/auth/microsoft/initiate?${new URLSearchParams({ uploadToken: token })}`
-        )
-        await navigateTo(res.data.url, { external: true })
-    } catch (err: any) {
-        microsoftLoading.value = false
-        dialog.toast(err.data?.statusMessage || 'Failed to initiate Microsoft sign-in')
-    }
-}
-
 const handleSignupSubmit = async () => {
     signupError.value = ''
     if (signupForm.value.password !== signupForm.value.confirmPassword) {
@@ -547,13 +467,13 @@ const handleSignupSubmit = async () => {
             method: 'POST',
             body: {
                 name: signupForm.value.name,
-                email: signupForm.value.email,
+                username: signupForm.value.username,
                 password: signupForm.value.password,
             },
         })
         const loginRes = await $fetch<{ success: boolean; data: { accessToken: string } }>('/api/v1/auth/login', {
             method: 'POST',
-            body: { email: signupForm.value.email, password: signupForm.value.password },
+            body: { username: signupForm.value.username, password: signupForm.value.password },
         })
         const accessToken = loginRes.data.accessToken
         setAuthToken(accessToken)

@@ -52,10 +52,8 @@ export default defineEventHandler(async (event) => {
         ])
 
         const updateData: Partial<typeof users.$inferInsert> = {}
-        if (!keepUser.email && deleteUser.email) updateData.email = deleteUser.email
+        if (!keepUser.username && deleteUser.username) updateData.username = deleteUser.username
         if (!keepUser.passwordHash && deleteUser.passwordHash) updateData.passwordHash = deleteUser.passwordHash
-        if (!keepUser.googleId && deleteUser.googleId) updateData.googleId = deleteUser.googleId
-        if (!keepUser.microsoftId && deleteUser.microsoftId) updateData.microsoftId = deleteUser.microsoftId
         if (!keepUser.instagram && deleteUser.instagram) updateData.instagram = deleteUser.instagram
         if (!keepUser.avatarPath && deleteUser.avatarPath) updateData.avatarPath = deleteUser.avatarPath
         if ((!keepUser.name || keepUser.name === 'Guest') && deleteUser.name && deleteUser.name !== 'Guest') {
@@ -65,9 +63,7 @@ export default defineEventHandler(async (event) => {
         if (Object.keys(updateData).length > 0) {
             // Nullify unique constraint fields on the deleted user first to prevent PostgresError (duplicate key value violates unique constraint)
             const nullifyData: Partial<typeof users.$inferInsert> = {}
-            if (updateData.email) nullifyData.email = null
-            if (updateData.googleId) nullifyData.googleId = null
-            if (updateData.microsoftId) nullifyData.microsoftId = null
+            if (updateData.username) nullifyData.username = null
 
             if (Object.keys(nullifyData).length > 0) {
                 await tx.update(users).set(nullifyData).where(eq(users.id, deleteId))

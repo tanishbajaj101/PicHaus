@@ -41,16 +41,6 @@ describe('isMemberRecord', () => {
         expect(isMemberRecord({ passwordHash: 'hash' })).toBe(true)
     })
 
-    it('returns true for a user with a googleId', () => {
-        delete process.env.COMMUNITY_MODE
-        expect(isMemberRecord({ googleId: 'g-123' })).toBe(true)
-    })
-
-    it('returns true for a user with a microsoftId', () => {
-        delete process.env.COMMUNITY_MODE
-        expect(isMemberRecord({ microsoftId: 'm-123' })).toBe(true)
-    })
-
     it('returns true for an ADMIN regardless of other fields', () => {
         delete process.env.COMMUNITY_MODE
         expect(isMemberRecord({ role: 'ADMIN' })).toBe(true)
@@ -58,7 +48,7 @@ describe('isMemberRecord', () => {
 
     it('returns false for an anonymous guest with none of those fields', () => {
         delete process.env.COMMUNITY_MODE
-        expect(isMemberRecord({ passwordHash: null, googleId: null, microsoftId: null, role: 'USER' })).toBe(false)
+        expect(isMemberRecord({ passwordHash: null, role: 'USER' })).toBe(false)
     })
 
     it('returns false for a null/undefined user', () => {

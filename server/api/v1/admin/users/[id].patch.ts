@@ -1,13 +1,13 @@
 import { eq, and, ne, count } from 'drizzle-orm'
 import { users } from '../../../../db/schema'
-import { requireAuth } from '../../../../utils/auth'
+import { requireAuth, normalizeUsername } from '../../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
     try {
         const currentUser = await requireAuth(event)
         const userId = getRouterParam(event, 'id')
         const body = await readBody(event)
-        const { role, name, email, instagram } = body
+        const { role, name, username, instagram } = body
 
         if (currentUser.role !== 'ADMIN') throw createError({ statusCode: 403, statusMessage: 'Permission denied' })
         if (!userId) throw createError({ statusCode: 400, statusMessage: 'User ID required' })
@@ -29,14 +29,16 @@ export default defineEventHandler(async (event) => {
         if (name !== undefined) updateData.name = name
         if (instagram !== undefined) updateData.instagram = instagram
 
-        if (email) {
-            const existing = await db.query.users.findFirst({ where: and(eq(users.email, email), ne(users.id, userId)) })
-            if (existing) throw createError({ statusCode: 400, statusMessage: 'Email already in use' })
-            updateData.email = email
+        if (username) {
+            const normalized = normalizeUsername(username)
+            if (!normalized) throw createError({ statusCode: 400, statusMessage: 'Username must be 3-32 letters, numbers, underscore, period, or hyphen' })
+            const existing = await db.query.users.findFirst({ where: and(eq(users.username, normalized), ne(users.id, userId)) })
+            if (existing) throw createError({ statusCode: 400, statusMessage: 'Username already in use' })
+            updateData.username = normalized
         }
 
         const [updatedUser] = await db.update(users).set(updateData).where(eq(users.id, userId)).returning({
-            id: users.id, name: users.name, email: users.email, instagram: users.instagram, role: users.role, createdAt: users.createdAt,
+            id: users.id, name: users.name, username: users.username, instagram: users.instagram, role: users.role, createdAt: users.createdAt,
         })
         if (!updatedUser) throw createError({ statusCode: 404, statusMessage: 'User not found' })
 

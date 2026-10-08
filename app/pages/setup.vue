@@ -30,15 +30,15 @@
                             @blur="($event.target as HTMLElement).style.borderColor = 'var(--separator)'; ($event.target as HTMLElement).style.boxShadow = 'none'" />
                     </div>
 
-                    <!-- Email -->
+                    <!-- Username -->
                     <div>
-                        <label for="email" class="block text-sm font-medium mb-1.5" style="color: var(--text-1);">
-                            Email
+                        <label for="username" class="block text-sm font-medium mb-1.5" style="color: var(--text-1);">
+                            Username
                         </label>
-                        <input id="email" v-model="form.email" type="email" required
+                        <input id="username" v-model="form.username" type="text" required autocomplete="username"
                             class="w-full px-3.5 py-2.5 text-sm rounded-xl transition"
                             style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1); outline: none;"
-                            placeholder="admin@example.com"
+                            placeholder="yourusername"
                             @focus="($event.target as HTMLElement).style.borderColor = 'var(--accent)'; ($event.target as HTMLElement).style.boxShadow = '0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent)'"
                             @blur="($event.target as HTMLElement).style.borderColor = 'var(--separator)'; ($event.target as HTMLElement).style.boxShadow = 'none'" />
                     </div>
@@ -89,7 +89,7 @@
 <script setup lang="ts">
 const form = ref({
     name: '',
-    email: '',
+    username: '',
     password: '',
 })
 

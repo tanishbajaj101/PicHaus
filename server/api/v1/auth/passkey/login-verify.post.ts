@@ -61,6 +61,6 @@ export default defineEventHandler(async (event) => {
 
     return {
         success: true,
-        data: { accessToken, id: passkey.user.id, name: passkey.user.name, email: passkey.user.email },
+        data: { accessToken, id: passkey.user.id, name: passkey.user.name, username: passkey.user.username },
     }
 })

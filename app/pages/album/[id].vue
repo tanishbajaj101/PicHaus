@@ -217,7 +217,7 @@
                             style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1); outline: none;">
                             <option value="">All Photographers</option>
                             <option v-for="uploader in availableUploaders" :key="uploader.id" :value="uploader.id">
-                                {{ uploader.name || uploader.email }}
+                                {{ uploader.name || uploader.username }}
                             </option>
                         </select>
 
@@ -479,7 +479,7 @@
                             </div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium truncate" style="color: var(--text-1);">{{ photographer.name }}</p>
-                                <p v-if="photographer.email" class="text-xs mt-0.5 truncate" style="color: var(--text-2);">{{ photographer.email }}</p>
+                                <p v-if="photographer.username" class="text-xs mt-0.5 truncate" style="color: var(--text-2);">{{ photographer.username }}</p>
                                 <div v-if="photographer.instagram" class="flex items-center gap-2 mt-1">
                                     <span class="text-xs" style="color: var(--text-2);">@{{ photographer.instagram }}</span>
                                     <a :href="`https://instagram.com/${photographer.instagram || ''}`" target="_blank"
@@ -1318,8 +1318,8 @@
                     <form @submit.prevent="addCollaborator" class="space-y-3">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div class="md:col-span-2">
-                                <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">User Email</label>
-                                <input v-model="newCollaboratorEmail" type="email" required placeholder="user@email.com"
+                                <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Username</label>
+                                <input v-model="newCollaboratorUsername" type="text" required autocomplete="username" placeholder="username"
                                     class="w-full px-3.5 py-2.5 text-sm rounded-xl transition"
                                     style="background: var(--surface-1); border: 1px solid var(--separator); color: var(--text-1); outline: none;"
                                     @focus="($event.target as HTMLElement).style.borderColor = 'var(--accent)'; ($event.target as HTMLElement).style.boxShadow = '0 0 0 3px rgba(var(--accent-rgb), 0.15)'"
@@ -1378,7 +1378,7 @@
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-semibold truncate" style="color: var(--text-1);">{{ collab.user.name || 'Unknown User' }}</p>
-                                    <p class="text-xs truncate" style="color: var(--text-3);">{{ collab.user.email }}</p>
+                                    <p class="text-xs truncate" style="color: var(--text-3);">{{ collab.user.username }}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
@@ -1567,7 +1567,7 @@ import { calculateSHA256 } from '~/utils/hash'
 interface User {
     id: string
     name: string | null
-    email: string | null
+    username: string | null
     instagram: string | null
     role?: string
     avatar?: string | null
@@ -1615,7 +1615,7 @@ interface Collaborator {
     user: {
         id: string
         name: string | null
-        email: string | null
+        username: string | null
         avatar?: string | null
     }
     createdAt: number
@@ -1660,7 +1660,7 @@ interface Album {
         uploaders: Array<{
             id: string
             name: string | null
-            email: string | null
+            username: string | null
             instagram: string | null
             avatar: string | null
         }>
@@ -1727,7 +1727,7 @@ const availableLenses = ref<string[]>([])
 const availableUploaders = ref<Array<{
     id: string
     name: string | null
-    email: string | null
+    username: string | null
     instagram?: string | null
     avatar?: string | null
 }>>([])
@@ -1805,8 +1805,8 @@ const allPhotographers = computed(() => {
     const owner = album.value.owner
     photographersMap.set(owner.id, {
         id: owner.id,
-        name: owner.name || owner.email || 'Unknown',
-        email: owner.email,
+        name: owner.name || owner.username || 'Unknown',
+        username: owner.username,
         instagram: owner.instagram,
         avatar: owner.avatar || null,
         role: 'Owner'
@@ -1819,8 +1819,8 @@ const allPhotographers = computed(() => {
         if (!photographersMap.has(user.id)) {
             photographersMap.set(user.id, {
                 id: user.id,
-                name: user.name || user.email || 'Unknown',
-                email: user.email,
+                name: user.name || user.username || 'Unknown',
+                username: user.username,
                 instagram: ('instagram' in user) ? user.instagram : null,
                 avatar: user.avatar || null,
                 role: 'Collaborator'
@@ -1834,7 +1834,7 @@ const allPhotographers = computed(() => {
             photographersMap.set(photo.uploader.id, {
                 id: photo.uploader.id,
                 name: photo.uploader.name || 'Unknown',
-                email: null,
+                username: null,
                 instagram: (photo.uploader as any).instagram || null,
                 avatar: photo.uploader.avatar || null,
                 role: 'Contributor'
@@ -1867,7 +1867,7 @@ const getPhotographersDisplay = computed(() => {
     const list = uploadedPhotographers.value
     if (list.length === 0 && album.value) {
         // Fallback to owner if no photos are uploaded yet
-        const ownerName = album.value.owner.name || album.value.owner.email || 'Unknown'
+        const ownerName = album.value.owner.name || album.value.owner.username || 'Unknown'
         return formatUploaderDisplayName(ownerName)
     }
     return list
@@ -2525,7 +2525,7 @@ const showCollaboratorsModal = ref(false)
 const collaboratorsList = ref<any[]>([])
 const loadingCollaborators = ref(false)
 const addingCollaborator = ref(false)
-const newCollaboratorEmail = ref('')
+const newCollaboratorUsername = ref('')
 const newCollaboratorRole = ref('editor')
 const loadingLinks = ref(false)
 const creatingLink = ref(false)
@@ -3162,18 +3162,18 @@ const fetchCollaborators = async () => {
 }
 
 const addCollaborator = async () => {
-    if (!newCollaboratorEmail.value) return
+    if (!newCollaboratorUsername.value) return
     addingCollaborator.value = true
     try {
         const res = await $fetch<{ success: boolean; data: any }>(`/api/v1/album/${albumId}/collaborators`, {
             method: 'POST',
             body: {
-                email: newCollaboratorEmail.value,
+                username: newCollaboratorUsername.value,
                 role: newCollaboratorRole.value
             }
         })
         collaboratorsList.value.push(res.data)
-        newCollaboratorEmail.value = ''
+        newCollaboratorUsername.value = ''
         toast('Collaborator added successfully', 'success')
         await fetchAlbum()
     } catch (err: any) {

@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm'
 import { albums, users } from '../../../db/schema'
 import { getUnixTimestamp, requireAuth } from '../../../utils/auth'
 import { requireRouterParamValue } from '../../../utils/api'
-import { assertAlbumOwnerWithEmail, avatarUrl, normalizeTags, serializeAlbum } from '../../../utils/albums'
+import { assertAlbumOwnerWithPassword, avatarUrl, normalizeTags, serializeAlbum } from '../../../utils/albums'
 
 export default defineEventHandler(async (event) => {
     try {
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
         })
 
         if (!album) throw createError({ statusCode: 404, statusMessage: 'Album not found' })
-        assertAlbumOwnerWithEmail(album, user, 'edit')
+        assertAlbumOwnerWithPassword(album, user, 'edit')
 
         const body = await readBody(event)
         const now = getUnixTimestamp()

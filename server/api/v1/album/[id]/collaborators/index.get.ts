@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
                     columns: {
                         id: true,
                         name: true,
-                        email: true,
+                        username: true,
                         instagram: true,
                         avatarPath: true,
                     }

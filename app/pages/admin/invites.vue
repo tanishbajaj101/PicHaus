@@ -48,7 +48,7 @@
                         <!-- Label / target -->
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium truncate" style="color: var(--text-1);">
-                                {{ t.type === 'password_reset' ? (t.targetEmail ?? '—') : (t.label ?? 'No label') }}
+                                {{ t.type === 'password_reset' ? (t.targetUsername ?? '—') : (t.label ?? 'No label') }}
                             </p>
                             <p class="text-xs mt-0.5" style="color: var(--text-3);">
                                 Expires {{ formatDate(t.expiresAt) }}
@@ -100,7 +100,7 @@
                 <!-- Password reset: user picker -->
                 <div v-if="modal.type === 'password_reset'">
                     <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">User</label>
-                    <input v-model="userSearch" type="text" placeholder="Search by name or email…"
+                    <input v-model="userSearch" type="text" placeholder="Search by name or username…"
                         class="w-full px-3.5 py-2.5 text-sm rounded-xl transition mb-2"
                         style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1); outline: none;"
                         @focus="($event.target as HTMLElement).style.borderColor = 'var(--accent)'; ($event.target as HTMLElement).style.boxShadow = '0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent)'"
@@ -108,13 +108,13 @@
                     <div class="max-h-48 overflow-y-auto space-y-1 rounded-xl p-1"
                         style="background: var(--surface-2); border: 1px solid var(--separator);">
                         <button v-for="u in filteredUsers" :key="u.id" type="button"
-                            @click="modal.userId = u.id; modal.targetLabel = u.email ?? u.name ?? u.id"
+                            @click="modal.userId = u.id; modal.targetLabel = u.username ?? u.name ?? u.id"
                             class="w-full text-left px-3 py-2 rounded-lg text-sm transition"
                             :style="modal.userId === u.id ? 'background: var(--accent-light); color: var(--accent);' : 'color: var(--text-1);'"
                             @mouseover="modal.userId !== u.id && (($event.currentTarget as HTMLElement).style.background = 'var(--surface-3)')"
                             @mouseout="modal.userId !== u.id && (($event.currentTarget as HTMLElement).style.background = 'transparent')">
                             <span class="font-medium">{{ u.name ?? '—' }}</span>
-                            <span class="ml-2 text-xs" style="color: var(--text-3);">{{ u.email }}</span>
+                            <span class="ml-2 text-xs" style="color: var(--text-3);">{{ u.username }}</span>
                         </button>
                         <p v-if="filteredUsers.length === 0" class="text-xs px-3 py-2" style="color: var(--text-3);">No users match.</p>
                     </div>
@@ -167,14 +167,14 @@ interface Token {
     token: string
     type: string
     label: string | null
-    targetEmail: string | null
+    targetUsername: string | null
     targetName: string | null
     expiresAt: number
     createdAt: number
     expired: boolean
 }
 
-interface UserRow { id: string; name: string | null; email: string | null }
+interface UserRow { id: string; name: string | null; username: string | null }
 
 const tokens = ref<Token[]>([])
 const listLoading = ref(true)
@@ -196,7 +196,7 @@ const modal = reactive({
 const filteredUsers = computed(() =>
     allUsers.value.filter(u => {
         const q = userSearch.value.toLowerCase()
-        return !q || (u.name?.toLowerCase().includes(q)) || (u.email?.toLowerCase().includes(q))
+        return !q || (u.name?.toLowerCase().includes(q)) || (u.username?.toLowerCase().includes(q))
     })
 )
 

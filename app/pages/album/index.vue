@@ -544,7 +544,7 @@
                 <Icon name="lucide:external-link" class="h-4 w-4 shrink-0" :stroke-width="2" />
                 Open Album
             </button>
-            <button v-if="user && user.id === albumContextMenu.album?.owner?.id && user.email"
+            <button v-if="user && user.id === albumContextMenu.album?.owner?.id && user.hasPassword"
                 @click="navigateTo(`/album/${albumContextMenu.album!.id}?edit=1`); closeAlbumContextMenu()"
                 class="w-full text-left px-3.5 py-2 text-sm transition flex items-center gap-2.5 rounded-lg"
                 style="color: var(--text-1); margin: 0 4px; width: calc(100% - 8px);"
@@ -562,7 +562,7 @@
                 Select
             </button>
             <div class="h-px my-1 mx-3" style="background: var(--separator);"></div>
-            <button v-if="user && user.id === albumContextMenu.album?.owner?.id && user.email"
+            <button v-if="user && user.id === albumContextMenu.album?.owner?.id && user.hasPassword"
                 @click="deleteAlbumFromMenu(albumContextMenu.album!.id); closeAlbumContextMenu()"
                 class="w-full text-left px-3.5 py-2 text-sm transition flex items-center gap-2.5 rounded-lg"
                 style="color: var(--error); margin: 0 4px; width: calc(100% - 8px);"
@@ -661,7 +661,7 @@ const visibleTags = computed(() => {
 })
 
 const canBatchEdit = computed(() => {
-    if (!user.value || !user.value.email) return false
+    if (!user.value || !user.value.hasPassword) return false
     return Array.from(selectedAlbumIds.value).every(id => {
         const album = albums.value.find(a => a.id === id)
         return album?.owner?.id === user.value.id

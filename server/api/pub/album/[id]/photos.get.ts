@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
 
     const album = await db.query.albums.findFirst({
         where: eq(albums.id, id),
-        with: { owner: { columns: { id: true, name: true, email: true, instagram: true, avatarPath: true } } },
+        with: { owner: { columns: { id: true, name: true, username: true, instagram: true, avatarPath: true } } },
         columns: { id: true, isPublic: true },
     })
 

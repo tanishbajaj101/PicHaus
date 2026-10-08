@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { users } from '../../../db/schema'
-import { hashPassword, getUnixTimestamp } from '../../../utils/auth'
+import { hashPassword, getUnixTimestamp, normalizeUsername } from '../../../utils/auth'
 import { getRegistrationPolicy } from '../../../utils/registration'
 import { enforceRateLimit } from '../../../utils/rate-limit'
 
@@ -13,24 +13,25 @@ export default defineEventHandler(async (event) => {
         }
 
         const body = await readBody(event)
+        const username = normalizeUsername(body.username)
 
-        if (!body.email || !body.password) {
-            throw createError({ statusCode: 400, statusMessage: 'Email and password are required' })
+        if (!username || !body.password) {
+            throw createError({ statusCode: 400, statusMessage: 'Username (3-32 letters, numbers, underscore, period, or hyphen) and password are required' })
         }
         if (typeof body.password !== 'string' || body.password.length < 8) {
             throw createError({ statusCode: 400, statusMessage: 'Password must be at least 8 characters' })
         }
 
-        const existing = await db.query.users.findFirst({ where: eq(users.email, body.email) })
+        const existing = await db.query.users.findFirst({ where: eq(users.username, username) })
         if (existing) {
-            throw createError({ statusCode: 409, statusMessage: 'User already exists' })
+            throw createError({ statusCode: 409, statusMessage: 'Username is already taken' })
         }
 
         const passwordHash = await hashPassword(body.password)
         const now = getUnixTimestamp()
 
         const [user] = await db.insert(users).values({
-            email: body.email,
+            username,
             passwordHash,
             name: body.name,
             instagram: body.instagram,
@@ -38,7 +39,7 @@ export default defineEventHandler(async (event) => {
             updatedAt: now,
         }).returning({
             id: users.id,
-            email: users.email,
+            username: users.username,
             name: users.name,
             instagram: users.instagram,
             createdAt: users.createdAt,

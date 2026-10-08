@@ -15,9 +15,9 @@ export default defineEventHandler(async (event) => {
     const options = await generateRegistrationOptions({
         rpName,
         rpID,
-        userName: user.email ?? user.name ?? user.id,
+        userName: user.username ?? user.name ?? user.id,
         userID: new TextEncoder().encode(user.id),
-        userDisplayName: user.name ?? user.email ?? 'User',
+        userDisplayName: user.name ?? user.username ?? 'User',
         attestationType: 'none',
         authenticatorSelection: {
             residentKey: 'preferred',

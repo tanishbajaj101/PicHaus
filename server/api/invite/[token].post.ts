@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { inviteTokens, users } from '../../db/schema'
-import { getUnixTimestamp, hashPassword, createAccessToken } from '../../utils/auth'
+import { getUnixTimestamp, hashPassword, createAccessToken, normalizeUsername } from '../../utils/auth'
 import { enforceRateLimit } from '../../utils/rate-limit'
 
 export default defineEventHandler(async (event) => {
@@ -40,21 +40,22 @@ export default defineEventHandler(async (event) => {
     }
 
     if (row.type === 'invite') {
-        const { name, email, password } = body
-        if (!name || !email || !password) {
-            throw createError({ statusCode: 400, statusMessage: 'Name, email, and password are required' })
+        const { name, password } = body
+        const username = normalizeUsername(body.username)
+        if (!name || !username || !password) {
+            throw createError({ statusCode: 400, statusMessage: 'Name, username, and password are required' })
         }
         if (password.length < 8) {
             throw createError({ statusCode: 400, statusMessage: 'Password must be at least 8 characters' })
         }
 
-        const existing = await db.query.users.findFirst({ where: eq(users.email, email) })
-        if (existing) throw createError({ statusCode: 409, statusMessage: 'An account with this email already exists' })
+        const existing = await db.query.users.findFirst({ where: eq(users.username, username) })
+        if (existing) throw createError({ statusCode: 409, statusMessage: 'An account with this username already exists' })
 
         const passwordHash = await hashPassword(password)
 
         const [newUser] = await db.insert(users).values({
-            email,
+            username,
             name,
             passwordHash,
             createdAt: now,
@@ -72,7 +73,7 @@ export default defineEventHandler(async (event) => {
         return {
             success: true,
             message: 'Account created successfully.',
-            data: { accessToken, id: newUser.id, name: newUser.name, email: newUser.email },
+            data: { accessToken, id: newUser.id, name: newUser.name, username: newUser.username },
         }
     }
 

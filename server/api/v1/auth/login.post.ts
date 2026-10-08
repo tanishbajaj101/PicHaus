@@ -7,20 +7,21 @@ export default defineEventHandler(async (event) => {
     try {
         enforceRateLimit(event, { key: 'auth-login', limit: 10, windowMs: 15 * 60 * 1000 })
         const body = await readBody(event)
+        const username = typeof body.username === 'string' ? body.username.trim().toLowerCase() : ''
 
-        if (!body.email || !body.password) {
-            throw createError({ statusCode: 400, statusMessage: 'Email and password are required' })
+        if (!username || !body.password) {
+            throw createError({ statusCode: 400, statusMessage: 'Username and password are required' })
         }
 
-        const user = await db.query.users.findFirst({ where: eq(users.email, body.email) })
+        const user = await db.query.users.findFirst({ where: eq(users.username, username) })
 
         if (!user || !user.passwordHash) {
-            throw createError({ statusCode: 401, statusMessage: 'Invalid email or password' })
+            throw createError({ statusCode: 401, statusMessage: 'Invalid username or password' })
         }
 
         const isValid = await verifyPassword(user.passwordHash, body.password)
         if (!isValid) {
-            throw createError({ statusCode: 401, statusMessage: 'Invalid email or password' })
+            throw createError({ statusCode: 401, statusMessage: 'Invalid username or password' })
         }
 
         const accessToken = await createAccessToken(user.id)
@@ -28,7 +29,7 @@ export default defineEventHandler(async (event) => {
         return {
             success: true,
             message: 'Login successful',
-            data: { accessToken, id: user.id, email: user.email, name: user.name, instagram: user.instagram },
+            data: { accessToken, id: user.id, username: user.username, name: user.name, instagram: user.instagram },
         }
     } catch (error: any) {
         if (error.statusCode) throw error

@@ -4,7 +4,7 @@ type AlbumOwnershipRecord = {
 
 type AlbumUserRecord = {
     id: string
-    email: string | null
+    passwordHash: string | null
 }
 
 type SerializableAlbum = {
@@ -29,7 +29,7 @@ export function normalizeTags(value: unknown): string[] {
     return Array.from(new Set(normalized))
 }
 
-export function assertAlbumOwnerWithEmail(
+export function assertAlbumOwnerWithPassword(
     album: AlbumOwnershipRecord,
     user: AlbumUserRecord,
     action: 'edit' | 'delete',
@@ -38,10 +38,10 @@ export function assertAlbumOwnerWithEmail(
         throw createError({ statusCode: 403, statusMessage: `Only the album owner can ${action} this album` })
     }
 
-    if (!user.email) {
+    if (!user.passwordHash) {
         throw createError({
             statusCode: 403,
-            statusMessage: `Guest users cannot ${action} albums until they have an email assigned`,
+            statusMessage: `Guest users cannot ${action} albums until they register with a username and password`,
         })
     }
 }

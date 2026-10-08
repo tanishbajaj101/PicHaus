@@ -3,7 +3,7 @@ import { albums } from '../../../db/schema'
 import { deleteFile } from '../../../utils/upload'
 import { requireAuth } from '../../../utils/auth'
 import { requireRouterParamValue } from '../../../utils/api'
-import { assertAlbumOwnerWithEmail } from '../../../utils/albums'
+import { assertAlbumOwnerWithPassword } from '../../../utils/albums'
 
 export default defineEventHandler(async (event) => {
     try {
@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
         })
 
         if (!album) throw createError({ statusCode: 404, statusMessage: 'Album not found' })
-        assertAlbumOwnerWithEmail(album, user, 'delete')
+        assertAlbumOwnerWithPassword(album, user, 'delete')
 
         for (const photo of album.photos) {
             if (photo.storagePath) await deleteFile(photo.storagePath)

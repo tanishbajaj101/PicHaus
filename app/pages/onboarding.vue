@@ -28,13 +28,13 @@
                         @blur="($event.target as HTMLElement).style.borderColor = 'var(--separator)'; ($event.target as HTMLElement).style.boxShadow = 'none'" />
                 </div>
 
-                <!-- Email Field (If they don't have one) -->
-                <div v-if="isGuest && !user?.email">
-                    <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Email Address</label>
-                    <input v-model="email" type="email" required
+                <!-- Username Field (If they don't have one) -->
+                <div v-if="isGuest && !user?.hasPassword">
+                    <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Username</label>
+                    <input v-model="username" type="text" required autocomplete="username"
                         class="w-full px-3.5 py-2.5 text-sm rounded-xl transition"
                         style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1); outline: none;"
-                        placeholder="your@email.com"
+                        placeholder="yourusername"
                         @focus="($event.target as HTMLElement).style.borderColor = 'var(--accent)'; ($event.target as HTMLElement).style.boxShadow = '0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent)'"
                         @blur="($event.target as HTMLElement).style.borderColor = 'var(--separator)'; ($event.target as HTMLElement).style.boxShadow = 'none'" />
                 </div>
@@ -114,10 +114,10 @@ const { loadSettings, settings } = useSiteSettings()
 
 const currentUser = useState<any>('currentUser')
 const user = computed(() => currentUser.value)
-const isGuest = computed(() => !user.value?.email || !user.value?.hasPassword)
+const isGuest = computed(() => !user.value?.hasPassword)
 
 const name = ref('')
-const email = ref('')
+const username = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const instagram = ref('')
@@ -141,30 +141,28 @@ onMounted(async () => {
     
     if (user.value) {
         name.value = user.value.name !== 'Guest' ? (user.value.name || '') : ''
-        email.value = user.value.email || ''
+        username.value = user.value.username || ''
         instagram.value = user.value.instagram || ''
     }
 })
 
 async function handleSave() {
     if (isGuest.value) {
-        if (!email.value) {
-            dialog.toast('Email is required.')
+        if (!username.value) {
+            dialog.toast('Username is required.')
             return
         }
-        if (!user.value?.hasPassword) {
-            if (!password.value) {
-                dialog.toast('Password is required.')
-                return
-            }
-            if (password.value.length < 8) {
-                dialog.toast('Password must be at least 8 characters.')
-                return
-            }
-            if (password.value !== confirmPassword.value) {
-                dialog.toast('Passwords do not match.')
-                return
-            }
+        if (!password.value) {
+            dialog.toast('Password is required.')
+            return
+        }
+        if (password.value.length < 8) {
+            dialog.toast('Password must be at least 8 characters.')
+            return
+        }
+        if (password.value !== confirmPassword.value) {
+            dialog.toast('Passwords do not match.')
+            return
         }
     }
 
@@ -179,7 +177,7 @@ async function handleSave() {
         if (handle) body.instagram = handle
         if (isGuest.value) {
             if (name.value && name.value !== user.value?.name) body.name = name.value
-            if (email.value && email.value !== user.value?.email) body.email = email.value
+            if (username.value && username.value !== user.value?.username) body.username = username.value
             if (password.value) body.password = password.value
         }
 

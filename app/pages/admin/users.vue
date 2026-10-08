@@ -56,7 +56,7 @@
                                         </div>
                                         <div>
                                             <div class="font-medium text-sm" style="color: var(--text-1);">{{ u.name || 'Unnamed' }}</div>
-                                            <div class="text-xs" style="color: var(--text-3);">{{ u.email }}</div>
+                                            <div class="text-xs" style="color: var(--text-3);">{{ u.username }}</div>
                                         </div>
                                     </div>
                                 </td>
@@ -158,8 +158,8 @@
                             @blur="($event.target as HTMLElement).style.borderColor = 'var(--separator)'; ($event.target as HTMLElement).style.boxShadow = 'none'" />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Email</label>
-                        <input v-model="editForm.email" type="email" required
+                        <label class="block text-sm font-medium mb-1.5" style="color: var(--text-2);">Username</label>
+                        <input v-model="editForm.username" type="text" required
                             class="w-full px-3.5 py-2.5 text-sm rounded-xl transition"
                             style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1); outline: none;"
                             @focus="($event.target as HTMLElement).style.borderColor = 'var(--accent)'; ($event.target as HTMLElement).style.boxShadow = '0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent)'"
@@ -250,9 +250,9 @@
                         <div>
                             <div class="font-medium text-sm" style="color: var(--text-1);">{{ mergeSource?.name || 'Unnamed' }}</div>
                             <div class="text-xs" style="color: var(--text-3);">
-                                <span v-if="mergeSource?.email">{{ mergeSource.email }}</span>
-                                <span v-if="mergeSource?.instagram" :class="mergeSource?.email ? 'ml-2' : ''">@{{ mergeSource.instagram }}</span>
-                                <span v-if="!mergeSource?.email && !mergeSource?.instagram">No email or instagram</span>
+                                <span v-if="mergeSource?.username">{{ mergeSource.username }}</span>
+                                <span v-if="mergeSource?.instagram" :class="mergeSource?.username ? 'ml-2' : ''">@{{ mergeSource.instagram }}</span>
+                                <span v-if="!mergeSource?.username && !mergeSource?.instagram">No username or instagram</span>
                             </div>
                         </div>
                         <div class="ml-auto text-xs" style="color: var(--text-3);">
@@ -270,7 +270,7 @@
                 <div class="mb-2">
                     <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color: var(--text-2);">Keep (target account)</label>
                     <input v-model="mergeSearchQuery" @input="debouncedMergeSearch" type="text"
-                        placeholder="Search by name, email, or instagram…"
+                        placeholder="Search by name, username, or instagram…"
                         class="w-full px-3.5 py-2.5 text-sm rounded-xl transition"
                         style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1); outline: none;"
                         @focus="($event.target as HTMLElement).style.borderColor = 'var(--accent)'; ($event.target as HTMLElement).style.boxShadow = '0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent)'"
@@ -294,8 +294,8 @@
                         <div class="flex-1 min-w-0">
                             <div class="font-medium text-sm truncate" style="color: var(--text-1);">{{ r.name || 'Unnamed' }}</div>
                             <div class="text-xs truncate" style="color: var(--text-3);">
-                                <span v-if="r.email">{{ r.email }}</span>
-                                <span v-if="r.instagram" :class="r.email ? 'ml-2' : ''">@{{ r.instagram }}</span>
+                                <span v-if="r.username">{{ r.username }}</span>
+                                <span v-if="r.instagram" :class="r.username ? 'ml-2' : ''">@{{ r.instagram }}</span>
                             </div>
                         </div>
                         <div class="text-xs shrink-0" style="color: var(--text-3);">{{ r._count.uploadedPhotos }} photos</div>
@@ -314,8 +314,8 @@
                         <div>
                             <div class="font-medium text-sm" style="color: var(--text-1);">{{ mergeTarget.name || 'Unnamed' }}</div>
                             <div class="text-xs" style="color: var(--text-3);">
-                                <span v-if="mergeTarget.email">{{ mergeTarget.email }}</span>
-                                <span v-if="mergeTarget.instagram" :class="mergeTarget.email ? 'ml-2' : ''">@{{ mergeTarget.instagram }}</span>
+                                <span v-if="mergeTarget.username">{{ mergeTarget.username }}</span>
+                                <span v-if="mergeTarget.instagram" :class="mergeTarget.username ? 'ml-2' : ''">@{{ mergeTarget.instagram }}</span>
                             </div>
                         </div>
                         <div class="ml-auto text-xs" style="color: var(--text-3);">
@@ -353,7 +353,7 @@ const IMPERSONATE_RETURN_KEY = 'pichaus_impersonate_return_token'
 interface User {
     id: string
     name: string | null
-    email: string | null
+    username: string | null
     instagram: string | null
     role: 'USER' | 'ADMIN'
     createdAt: number
@@ -465,7 +465,7 @@ const showEditModal = ref(false)
 const editingUser = ref<User | null>(null)
 const editForm = ref({
     name: '',
-    email: '',
+    username: '',
     instagram: '',
     role: 'USER' as 'USER' | 'ADMIN'
 })
@@ -513,7 +513,7 @@ const copyEditingUserResetLink = async () => {
 }
 
 const quickGenerateResetLink = async (targetUser: User) => {
-    if (!await dialog.confirm(`Generate a password reset link for ${targetUser.name || targetUser.email || 'this user'}?`)) return
+    if (!await dialog.confirm(`Generate a password reset link for ${targetUser.name || targetUser.username || 'this user'}?`)) return
 
     try {
         const res = await $fetch<{ success: boolean; data: { token: string } }>('/api/v1/admin/invites', {
@@ -527,7 +527,7 @@ const quickGenerateResetLink = async (targetUser: User) => {
         if (res.success) {
             const url = `${window.location.origin}/invite/${res.data.token}`
             await navigator.clipboard.writeText(url)
-            dialog.toast(`Password reset link copied to clipboard for ${targetUser.name || targetUser.email}`, 'success')
+            dialog.toast(`Password reset link copied to clipboard for ${targetUser.name || targetUser.username}`, 'success')
         }
     } catch (err: any) {
         dialog.toast(err.data?.statusMessage || 'Failed to generate reset link')
@@ -538,7 +538,7 @@ const openEditModal = (targetUser: User) => {
     editingUser.value = targetUser
     editForm.value = {
         name: targetUser.name || '',
-        email: targetUser.email || '',
+        username: targetUser.username || '',
         instagram: targetUser.instagram || '',
         role: targetUser.role
     }
@@ -608,7 +608,7 @@ const debouncedMergeSearch = debounce(searchMergeTargets, 300)
 
 const selectMergeTarget = (targetUser: User) => {
     mergeTarget.value = targetUser
-    mergeSearchQuery.value = targetUser.name || targetUser.email || ''
+    mergeSearchQuery.value = targetUser.name || targetUser.username || ''
     mergeSearchResults.value = []
 }
 
@@ -636,7 +636,7 @@ const handleMergeSubmit = async () => {
 }
 
 const impersonateUser = async (targetUser: User) => {
-    if (!await dialog.confirm(`Login as ${targetUser.name || targetUser.email || 'this user'}? Your admin session will be saved and you can restore it from the login page.`)) return
+    if (!await dialog.confirm(`Login as ${targetUser.name || targetUser.username || 'this user'}? Your admin session will be saved and you can restore it from the login page.`)) return
 
     try {
         const res = await $fetch<{ success: boolean; data: { accessToken: string; name: string } }>(

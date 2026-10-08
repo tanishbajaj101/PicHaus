@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
         expiresAt: inviteTokens.expiresAt,
         createdAt: inviteTokens.createdAt,
         userId: inviteTokens.userId,
-        targetEmail: users.email,
+        targetUsername: users.username,
         targetName: users.name,
     })
         .from(inviteTokens)
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
             expiresAt: Number(r.expiresAt),
             createdAt: Number(r.createdAt),
             expired: r.expiresAt < now,
-            targetEmail: r.targetEmail,
+            targetUsername: r.targetUsername,
             targetName: r.targetName,
         })),
     }

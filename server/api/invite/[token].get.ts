@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
 
     const row = await db.query.inviteTokens.findFirst({
         where: eq(inviteTokens.token, token),
-        with: { user: { columns: { email: true, name: true } } },
+        with: { user: { columns: { username: true, name: true } } },
     })
 
     if (!row) throw createError({ statusCode: 404, statusMessage: 'Invalid or expired link' })
@@ -21,8 +21,8 @@ export default defineEventHandler(async (event) => {
             type: row.type,
             label: row.label,
             expiresAt: Number(row.expiresAt),
-            // For password_reset: prefill the email so user knows which account
-            targetEmail: row.user?.email ?? null,
+            // For password_reset: prefill the username so user knows which account
+            targetUsername: row.user?.username ?? null,
             targetName: row.user?.name ?? null,
         },
     }

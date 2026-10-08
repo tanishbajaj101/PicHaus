@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
             .from(shareGroups)
             .where(or(...logoIds.map(id => eq(shareGroups.logoImageId, id))))
             .groupBy(shareGroups.logoImageId),
-        db.select({ logoImageId: siteSettings.logoImageId, googleButtonLogoId: siteSettings.googleButtonLogoId })
+        db.select({ logoImageId: siteSettings.logoImageId })
             .from(siteSettings)
             .where(eq(siteSettings.id, 1))
             .limit(1)
@@ -47,7 +47,6 @@ export default defineEventHandler(async (event) => {
             url: `/api/assets/logo/${logo.id}`,
             usage: {
                 siteLogoActive: siteRow?.logoImageId === logo.id,
-                googleButtonActive: siteRow?.googleButtonLogoId === logo.id,
                 albumCount: albumMap.get(logo.id) ?? 0,
                 groupCount: groupMap.get(logo.id) ?? 0,
             },

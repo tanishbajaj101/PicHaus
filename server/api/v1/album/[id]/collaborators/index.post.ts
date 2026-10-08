@@ -17,13 +17,13 @@ export default defineEventHandler(async (event) => {
         if (album.ownerId !== user.id) throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
 
         const body = await readBody(event)
-        const { email, role } = body
+        const { username, role } = body
 
-        if (!email) throw createError({ statusCode: 400, statusMessage: 'Email is required' })
+        if (!username) throw createError({ statusCode: 400, statusMessage: 'Username is required' })
         const targetRole = ['admin', 'editor', 'viewer'].includes(role) ? role : 'editor'
 
         const targetUser = await db.query.users.findFirst({
-            where: eq(users.email, email.toLowerCase().trim()),
+            where: eq(users.username, username.toLowerCase().trim()),
         })
 
         if (!targetUser) {
@@ -65,7 +65,7 @@ export default defineEventHandler(async (event) => {
                 user: {
                     id: targetUser.id,
                     name: targetUser.name,
-                    email: targetUser.email,
+                    username: targetUser.username,
                     instagram: targetUser.instagram,
                     avatar: targetUser.avatarPath ? `/api/assets/avatar/${targetUser.id}` : null,
                 }

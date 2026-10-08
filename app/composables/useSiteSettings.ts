@@ -6,13 +6,6 @@ export interface SiteSettings {
     logoImageUrl: string | null
     logoImageId: string | null
     allowRegistration: boolean
-    googleOAuthEnabled: boolean
-    googleOAuthShiftBypassEnabled: boolean
-    googleButtonText: string | null
-    googleButtonLogoUrl: string | null
-    microsoftOAuthEnabled: boolean
-    microsoftButtonText: string | null
-    microsoftButtonLogoUrl: string | null
 }
 
 function applyAccent(color: string | null) {
@@ -26,13 +19,6 @@ export const useSiteSettings = () => {
         logoImageUrl: null,
         logoImageId: null,
         allowRegistration: false,
-        googleOAuthEnabled: false,
-        googleOAuthShiftBypassEnabled: false,
-        googleButtonText: null,
-        googleButtonLogoUrl: null,
-        microsoftOAuthEnabled: false,
-        microsoftButtonText: null,
-        microsoftButtonLogoUrl: null,
     }))
     const _loaded = useState<boolean>('siteSettingsLoaded', () => false)
 

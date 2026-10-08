@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
         enforceRateLimit(event, { key: 'guest-login', limit: 10, windowMs: 15 * 60 * 1000 })
         const body = await readBody(event)
         const { token, password } = body
-        let { name, email, instagram } = body
+        const { name, instagram } = body
         const now = getUnixTimestamp()
 
         if (!token) {
@@ -157,40 +157,14 @@ export default defineEventHandler(async (event) => {
         }
 
         if (!user) {
-            if (email) {
-                const existingUser = await db.query.users.findFirst({ where: eq(users.email, email) }) ?? null
-                if (existingUser) {
-                    if (existingUser.passwordHash) {
-                        if (!body.accountPassword) {
-                            throw createError({ statusCode: 401, statusMessage: 'This email is registered. Please provide your account password.' })
-                        }
-                        const valid = await argon2.verify(existingUser.passwordHash, body.accountPassword)
-                        if (!valid) throw createError({ statusCode: 401, statusMessage: 'Incorrect password' })
-                    }
-                    user = existingUser ?? null
-                    if (instagram && !user?.instagram) {
-                        const [updated] = await db.update(users).set({ instagram }).where(eq(users.id, user!.id)).returning()
-                        user = updated ?? null
-                    }
-                } else {
-                    const [created] = await db.insert(users).values({
-                        email,
-                        name: name || email.split('@')[0],
-                        instagram: instagram || null,
-                        createdAt: getUnixTimestamp(),
-                        updatedAt: getUnixTimestamp(),
-                    }).returning()
-                    user = created ?? null
-                }
-            } else {
-                const [created] = await db.insert(users).values({
-                    name: name || 'Guest',
-                    instagram: instagram || null,
-                    createdAt: getUnixTimestamp(),
-                    updatedAt: getUnixTimestamp(),
-                }).returning()
-                user = created ?? null
-            }
+            // Anonymous guest — no identifying info is ever collected here.
+            const [created] = await db.insert(users).values({
+                name: name || 'Guest',
+                instagram: instagram || null,
+                createdAt: getUnixTimestamp(),
+                updatedAt: getUnixTimestamp(),
+            }).returning()
+            user = created ?? null
         }
 
         if (!user) throw createError({ statusCode: 500, statusMessage: 'Failed to resolve user' })
@@ -219,7 +193,6 @@ export default defineEventHandler(async (event) => {
                 accessToken,
                 id: user.id,
                 name: user.name,
-                email: user.email,
                 albumId: shareLink.albumId,
                 albumName: shareLink.album.title,
                 description: shareLink.album.description,

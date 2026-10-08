@@ -22,15 +22,15 @@
             <!-- Login Card -->
             <div class="rounded-2xl p-6" style="background: var(--surface-1); border: 1px solid var(--separator); box-shadow: var(--shadow-md);">
                 <form @submit.prevent="handleLogin" class="space-y-4">
-                    <!-- Email -->
+                    <!-- Username -->
                     <div>
-                        <label for="email" class="block text-sm font-medium mb-1.5" style="color: var(--text-1);">
-                            Email
+                        <label for="username" class="block text-sm font-medium mb-1.5" style="color: var(--text-1);">
+                            Username
                         </label>
-                        <input id="email" v-model="form.email" type="email" required autocomplete="email"
+                        <input id="username" v-model="form.username" type="text" required autocomplete="username"
                             class="w-full px-3.5 py-2.5 text-sm rounded-xl transition"
                             style="background: var(--surface-2); border: 1px solid var(--separator); color: var(--text-1); outline: none;"
-                            placeholder="your@email.com"
+                            placeholder="yourusername"
                             @focus="($event.target as HTMLElement).style.borderColor = 'var(--accent)'; ($event.target as HTMLElement).style.boxShadow = '0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent)'"
                             @blur="($event.target as HTMLElement).style.borderColor = 'var(--separator)'; ($event.target as HTMLElement).style.boxShadow = 'none'" />
                     </div>
@@ -77,32 +77,6 @@
                 </div>
 
                 <div class="space-y-2.5">
-                    <!-- Google Sign-In -->
-                    <button v-if="siteSettings.googleOAuthEnabled" @click="handleGoogleLogin($event)" :disabled="googleLoading"
-                        class="w-full flex items-center justify-center gap-2.5 py-2.5 text-sm font-medium rounded-full transition"
-                        style="background: var(--surface-2); color: var(--text-1); border: 1px solid var(--separator);"
-                        @mouseover="!googleLoading && (($event.currentTarget as HTMLElement).style.background = 'var(--surface-3)')"
-                        @mouseout="($event.currentTarget as HTMLElement).style.background = 'var(--surface-2)'">
-                        <span v-if="googleLoading" class="w-4 h-4 rounded-full border-2 animate-spin"
-                            style="border-color: var(--separator); border-top-color: var(--text-2);"></span>
-                        <img v-else-if="siteSettings.googleButtonLogoUrl" :src="siteSettings.googleButtonLogoUrl" class="w-4 h-4 flex-shrink-0 object-contain" />
-                        <Icon v-else name="logos:google-icon" class="w-4 h-4 flex-shrink-0" />
-                        <span>{{ googleLoading ? 'Redirecting…' : (siteSettings.googleButtonText || 'Sign in with Google') }}</span>
-                    </button>
-
-                    <!-- Microsoft Sign-In -->
-                    <button v-if="siteSettings.microsoftOAuthEnabled" @click="handleMicrosoftLogin" :disabled="microsoftLoading"
-                        class="w-full flex items-center justify-center gap-2.5 py-2.5 text-sm font-medium rounded-full transition"
-                        style="background: var(--surface-2); color: var(--text-1); border: 1px solid var(--separator);"
-                        @mouseover="!microsoftLoading && (($event.currentTarget as HTMLElement).style.background = 'var(--surface-3)')"
-                        @mouseout="($event.currentTarget as HTMLElement).style.background = 'var(--surface-2)'">
-                        <span v-if="microsoftLoading" class="w-4 h-4 rounded-full border-2 animate-spin"
-                            style="border-color: var(--separator); border-top-color: var(--text-2);"></span>
-                        <img v-else-if="siteSettings.microsoftButtonLogoUrl" :src="siteSettings.microsoftButtonLogoUrl" class="w-4 h-4 flex-shrink-0 object-contain" />
-                        <Icon v-else name="logos:microsoft-icon" class="w-4 h-4 flex-shrink-0" />
-                        <span>{{ microsoftLoading ? 'Redirecting…' : (siteSettings.microsoftButtonText || 'Sign in with Microsoft') }}</span>
-                    </button>
-
                     <!-- Passkey -->
                     <button @click="handlePasskeyLogin" :disabled="passkeyLoading"
                         class="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-full transition"
@@ -162,7 +136,7 @@ useHead({
 
 const route = useRoute()
 const { trigger: splashTrigger, dismiss: splashDismiss } = useSplash()
-const { settings: siteSettings, loadSettings } = useSiteSettings()
+const { loadSettings } = useSiteSettings()
 
 // Load setup status and site settings during server-side rendering (SSR)
 try {
@@ -184,13 +158,11 @@ const getRedirectTarget = () => {
     return '/album'
 }
 
-const form = ref({ email: '', password: '' })
+const form = ref({ username: '', password: '' })
 const loading = ref(false)
 const error = ref('')
 const passkeyLoading = ref(false)
 const passkeyError = ref('')
-const googleLoading = ref(false)
-const microsoftLoading = ref(false)
 
 const handleLogin = async () => {
     loading.value = true
@@ -241,33 +213,6 @@ const handlePasskeyLogin = async () => {
         passkeyError.value = err?.data?.statusMessage || err?.message || 'Passkey sign-in failed'
     } finally {
         passkeyLoading.value = false
-    }
-}
-
-const handleGoogleLogin = async (event?: MouseEvent) => {
-    googleLoading.value = true
-    try {
-        const bypassDomain = siteSettings.value.googleOAuthShiftBypassEnabled && event?.shiftKey
-        const res = await $fetch<{ success: boolean; data: { url: string } }>('/api/v1/auth/google/initiate', {
-            query: { redirect: getRedirectTarget(), ...(bypassDomain ? { bypassDomain: 'true' } : {}) },
-        })
-        window.location.href = res.data.url
-    } catch (err: any) {
-        error.value = err.data?.statusMessage || 'Google sign-in is not available'
-        googleLoading.value = false
-    }
-}
-
-const handleMicrosoftLogin = async () => {
-    microsoftLoading.value = true
-    try {
-        const res = await $fetch<{ success: boolean; data: { url: string } }>('/api/v1/auth/microsoft/initiate', {
-            query: { redirect: getRedirectTarget() },
-        })
-        window.location.href = res.data.url
-    } catch (err: any) {
-        error.value = err.data?.statusMessage || 'Microsoft sign-in is not available'
-        microsoftLoading.value = false
     }
 }
 

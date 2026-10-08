@@ -45,8 +45,8 @@ export default defineEventHandler(async (event) => {
             throw createError({ statusCode: 403, statusMessage: 'Only the album owner can edit these albums' })
         }
 
-        if (!user.email) {
-            throw createError({ statusCode: 403, statusMessage: 'Guest users cannot edit albums until they have an email assigned' })
+        if (!user.passwordHash) {
+            throw createError({ statusCode: 403, statusMessage: 'Guest users cannot edit albums until they register with a username and password' })
         }
 
         const editableAlbums = albumRows

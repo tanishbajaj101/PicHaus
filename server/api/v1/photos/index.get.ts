@@ -81,7 +81,7 @@ export default defineEventHandler(async (event) => {
             albumId: photos.albumId,
             uploaderId: photos.uploaderId,
             uploaderName: users.name,
-            uploaderEmail: users.email,
+            uploaderUsername: users.username,
             uploaderInstagram: users.instagram,
         })
             .from(photos)
@@ -100,7 +100,7 @@ export default defineEventHandler(async (event) => {
         dateTaken: p.dateTaken ? Number(p.dateTaken) : null,
         createdAt: Number(p.createdAt),
         updatedAt: Number(p.updatedAt),
-        uploader: p.uploaderId ? { id: p.uploaderId, name: p.uploaderName, email: p.uploaderEmail, instagram: p.uploaderInstagram } : null,
+        uploader: p.uploaderId ? { id: p.uploaderId, name: p.uploaderName, username: p.uploaderUsername, instagram: p.uploaderInstagram } : null,
     }))
 
     return {

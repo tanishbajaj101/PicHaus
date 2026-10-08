@@ -1,0 +1,17 @@
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "username" text;
+DROP INDEX IF EXISTS "users_email_key";
+DROP INDEX IF EXISTS "users_googleId_key";
+DROP INDEX IF EXISTS "users_microsoftId_key";
+ALTER TABLE "users" DROP COLUMN IF EXISTS "email";
+ALTER TABLE "users" DROP COLUMN IF EXISTS "googleId";
+ALTER TABLE "users" DROP COLUMN IF EXISTS "microsoftId";
+CREATE UNIQUE INDEX IF NOT EXISTS "users_username_key" ON "users"("username");
+ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "googleOAuthEnabled";
+ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "googleOAuthAllowedDomain";
+ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "googleOAuthShiftBypassEnabled";
+ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "googleButtonText";
+ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "googleButtonLogoId";
+ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "microsoftOAuthEnabled";
+ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "microsoftOAuthTenantId";
+ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "microsoftButtonText";
+ALTER TABLE "site_settings" DROP COLUMN IF EXISTS "microsoftButtonLogoId";
