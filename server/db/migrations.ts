@@ -362,4 +362,13 @@ ON CONFLICT ("id") DO NOTHING`,
             `CREATE INDEX IF NOT EXISTS "faces_personId_idx" ON "faces"("personId")`,
         ],
     },
+    {
+        // Added in drizzle/migrations/0008_share_link_upload_message.sql but
+        // never added here, so the embedded runner never applied it and fresh
+        // installs failed validateRequiredSchema's startup check.
+        name: '0015_share_link_upload_message.sql',
+        statements: [
+            `ALTER TABLE "share_links" ADD COLUMN IF NOT EXISTS "uploadMessage" text`,
+        ],
+    },
 ]
