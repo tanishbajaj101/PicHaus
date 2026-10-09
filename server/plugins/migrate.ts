@@ -41,6 +41,19 @@ export default defineNitroPlugin(async () => {
             return exists
         }
 
+        // Carry over history from the pre-rename tracking table, otherwise every
+        // migration (including 0000, which indexes the since-dropped users.email)
+        // would be re-applied against the current schema.
+        if (await tableExists('__pichaus_migrations')) {
+            console.log('[db] Migrating history from legacy __pichaus_migrations table')
+            await db.execute(sql`
+                INSERT INTO __gooncave_migrations (name, applied_at)
+                SELECT name, applied_at FROM __pichaus_migrations
+                ON CONFLICT (name) DO NOTHING
+            `)
+            await db.execute(sql`DROP TABLE __pichaus_migrations`)
+        }
+
         // Apply any pending migrations in order.
         // All statements use IF NOT EXISTS / EXCEPTION WHEN duplicate so they are
         // safe to run against an existing schema.
